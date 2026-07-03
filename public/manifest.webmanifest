@@ -1,0 +1,17 @@
+{
+  "name": "Vibe CRM",
+  "short_name": "Vibe CRM",
+  "description": "CRM ligero para un negocio pequeño: organiza clientes y no pierdas ventas por falta de seguimiento.",
+  "lang": "es",
+  "start_url": "/hoy",
+  "display": "standalone",
+  "background_color": "#F7F8F9",
+  "theme_color": "#16A34A",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
