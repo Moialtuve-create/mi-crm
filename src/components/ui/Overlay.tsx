@@ -24,6 +24,13 @@ export function Overlay({
 }) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const previoRef = useRef<HTMLElement | null>(null);
+  // onClose se lee por ref para que el efecto NO dependa de su identidad: si
+  // dependiera, cada render del padre (cada tecla) re-ejecutaría el efecto y
+  // volvería a enfocar el primer campo (Nombre), robando el foco al teclear.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -46,7 +53,7 @@ export function Overlay({
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab") return;
@@ -75,7 +82,7 @@ export function Overlay({
       document.body.style.overflow = overflowPrevio;
       previoRef.current?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 
