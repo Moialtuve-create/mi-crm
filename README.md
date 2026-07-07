@@ -93,16 +93,19 @@ src/lib/           helpers (fecha, estados, sesión mock) + auth.ts (interfaz de
 Railway despliega automáticamente cada push a `main`. La configuración está versionada en
 [`railway.json`](./railway.json):
 
-- **Build:** `npx convex deploy --cmd 'npm run build'` — despliega las funciones de Convex al
-  deployment de **producción** e inyecta `NEXT_PUBLIC_CONVEX_URL` en el build de Next.
-- **Start:** `npm run start` (Next escucha en `$PORT`, que define Railway).
-- **Node:** 20.9+ vía `.nvmrc` / `engines`.
+- **Build:** `npm run build` · **Start:** `npm run start` (Next escucha en `$PORT`) ·
+  **Node:** 20.9+ (`.nvmrc` / `engines`).
 
-**Variables del servicio en Railway (una vez):**
+**Modo actual — apuntar a un backend de Convex ya desplegado (sin secreto):**
+La variable `NEXT_PUBLIC_CONVEX_URL` del servicio de Railway apunta a un deployment de Convex
+(p. ej. el de desarrollo `grateful-grouse-386`). Railway solo construye la app Next; las
+funciones de Convex se despliegan aparte con `npx convex deploy` cuando cambien.
 
-1. En el dashboard de Convex → Settings → *Deploy keys* → genera una **Production deploy key**.
-2. En Railway → variables del servicio, añade `CONVEX_DEPLOY_KEY` = esa key.
-   No hace falta definir `NEXT_PUBLIC_CONVEX_URL` a mano: `convex deploy --cmd` la inyecta.
+**Upgrade a deploy de Convex automatizado en producción:**
+1. Crea una **Production deploy key** en Convex (Settings → Deploy keys).
+2. En Railway añade `CONVEX_DEPLOY_KEY` = esa key (y quita el `NEXT_PUBLIC_CONVEX_URL` manual).
+3. Cambia `buildCommand` en `railway.json` a `npx convex deploy --cmd 'npm run build'`.
+   Así cada deploy despliega Convex a producción e inyecta la URL automáticamente.
 
 **Datos en producción:** como no hay login todavía (MOI-80), la app usa el usuario por
 defecto `carlos@betadigital.com`, que debe existir en la BD de producción. Para una demo,
