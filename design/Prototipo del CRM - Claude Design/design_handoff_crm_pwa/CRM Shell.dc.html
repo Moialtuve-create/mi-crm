@@ -44,11 +44,11 @@
           <sc-if value="{{ loginHasError }}" hint-placeholder-val="{{ false }}">
             <div role="alert" style="display:flex;align-items:center;gap:8px;padding:11px 12px;border-radius:var(--radius-md);background:var(--color-error-bg);border:1px solid var(--color-error);color:var(--color-error-text);font-size:13px;font-weight:500">{{ loginError }}</div>
           </sc-if>
-          <form onSubmit="{{ onLoginSubmit }}" style="display:flex;flex-direction:column;gap:16px">
-            <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Email" value="{{ loginEmail }}" onChange="{{ setLoginEmail }}" placeholder="tu@empresa.com" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autofocus="true" error="{{ loginEmailErr }}" icon="{{ icons.mail }}" hint-size="100%,74px"></x-import>
+          <form sc-camel-on-submit="{{ onLoginSubmit }}" style="display:flex;flex-direction:column;gap:16px">
+            <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Email" value="{{ loginEmail }}" sc-camel-on-change="{{ setLoginEmail }}" placeholder="tu@empresa.com" type="email" inputmode="email" autocomplete="email" autocapitalize="none" autofocus="true" error="{{ loginEmailErr }}" icon="{{ icons.mail }}" hint-size="100%,74px"></x-import>
             <div style="position:relative">
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Contraseña" value="{{ loginPassword }}" onChange="{{ setLoginPassword }}" placeholder="••••••••" type="{{ passwordType }}" autocomplete="current-password" error="{{ loginPassErr }}" hint-size="100%,74px"></x-import>
-              <button type="button" onClick="{{ toggleShowPassword }}" aria-label="{{ passwordToggleLabel }}" aria-pressed="{{ showPassword }}" style="position:absolute;top:30px;right:6px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);cursor:pointer;color:var(--color-text-subtle)" style-hover="background:var(--color-surface-2)">{{ passwordToggleIcon }}</button>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Contraseña" value="{{ loginPassword }}" sc-camel-on-change="{{ setLoginPassword }}" placeholder="••••••••" type="{{ passwordType }}" autocomplete="current-password" error="{{ loginPassErr }}" hint-size="100%,74px"></x-import>
+              <button type="button" sc-camel-on-click="{{ toggleShowPassword }}" aria-label="{{ passwordToggleLabel }}" aria-pressed="{{ showPassword }}" style="position:absolute;top:30px;right:6px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);cursor:pointer;color:var(--color-text-subtle)" style-hover="background:var(--color-surface-2)">{{ passwordToggleIcon }}</button>
             </div>
             <button type="submit" disabled="{{ loginLoading }}" style="width:100%;height:48px;border-radius:var(--radius-md);background:var(--color-primary);border:none;color:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px" style-hover="background:var(--color-primary-hover)">
               <sc-if value="{{ loginLoading }}" hint-placeholder-val="{{ false }}"><span style="width:16px;height:16px;border-radius:9999px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;display:inline-block;animation:vibe-spin .7s linear infinite"></span></sc-if>
@@ -56,7 +56,7 @@
             </button>
           </form>
           <div style="display:flex;justify-content:center">
-            <a href="#" onClick="{{ onForgot }}" style="font-size:14px;color:var(--color-primary);font-weight:500;text-decoration:none">¿Olvidaste tu contraseña?</a>
+            <a href="#" sc-camel-on-click="{{ onForgot }}" style="font-size:14px;color:var(--color-primary);font-weight:500;text-decoration:none">¿Olvidaste tu contraseña?</a>
           </div>
         </div>
         <p style="margin:0;text-align:center;font-size:12px;color:var(--color-text-subtle);line-height:1.6">Acceso de ejemplo: <span>marta</span><span>@</span><span>acme.es</span> · <span>carlos</span><span>@</span><span>betadigital.com</span><br>(contraseña: cualquiera — auth simulada)</p>
@@ -73,21 +73,21 @@
         <span style="font-size:16px;font-weight:600;letter-spacing:-0.011em;color:var(--color-text)">Vibe CRM</span>
       </div>
       <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="2">
-        <button type="button" onClick="{{ n.onClick }}" style="{{ n.style }}">
+        <button type="button" sc-camel-on-click="{{ n.onClick }}" style="{{ n.style }}">
           <span style="display:inline-flex">{{ n.icon }}</span>
           <span>{{ n.label }}</span>
         </button>
       </sc-for>
       <div style="flex:1"></div>
       <div style="display:flex;align-items:center;gap:6px;padding:6px;border-top:1px solid var(--color-border)">
-        <button type="button" onClick="{{ openPerfil }}" aria-label="Mi cuenta" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;background:none;border:none;cursor:pointer;padding:6px;border-radius:var(--radius-md);text-align:left" style-hover="background:var(--color-surface-2)">
+        <button type="button" sc-camel-on-click="{{ openPerfil }}" aria-label="Mi cuenta" style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;background:none;border:none;cursor:pointer;padding:6px;border-radius:var(--radius-md);text-align:left" style-hover="background:var(--color-surface-2)">
           <span style="display:inline-flex">{{ userAvatarNode }}</span>
           <div style="display:flex;flex-direction:column;min-width:0;flex:1">
             <span style="font-size:13px;font-weight:500;color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ sessionName }}</span>
             <span style="font-size:12px;color:var(--color-text-subtle)">{{ sessionRol }}</span>
           </div>
         </button>
-        <button type="button" onClick="{{ doLogout }}" aria-label="Cerrar sesión" title="Cerrar sesión" style="width:34px;height:34px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);cursor:pointer;color:var(--color-text-subtle)" style-hover="background:var(--color-surface-2)">{{ icons.logout }}</button>
+        <button type="button" sc-camel-on-click="{{ doLogout }}" aria-label="Cerrar sesión" title="Cerrar sesión" style="width:34px;height:34px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);cursor:pointer;color:var(--color-text-subtle)" style-hover="background:var(--color-surface-2)">{{ icons.logout }}</button>
       </div>
     </aside>
   </sc-if>
@@ -96,20 +96,20 @@
 
     <header style="display:flex;align-items:center;gap:8px;height:60px;flex-shrink:0;padding:0 12px;border-bottom:1px solid var(--color-border);background:var(--color-surface);z-index:10">
       <sc-if value="{{ showBack }}" hint-placeholder-val="{{ false }}">
-        <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.IconButton" variant="ghost" aria-label="Atrás" onClick="{{ onBack }}" hint-size="48px,48px">{{ icons.back }}</x-import>
+        <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.IconButton" variant="ghost" aria-label="Atrás" sc-camel-on-click="{{ onBack }}" hint-size="48px,48px">{{ icons.back }}</x-import>
       </sc-if>
       <h2 style="margin:0;flex:1;font-size:17px;font-weight:600;letter-spacing:-0.011em;color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:4px">{{ topTitle }}</h2>
       <sc-if value="{{ showBellBtn }}" hint-placeholder-val="{{ false }}">
         <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.IconButton" variant="ghost" aria-label="Notificaciones" hint-size="48px,48px">{{ icons.bell }}</x-import>
       </sc-if>
       <sc-if value="{{ showProfileBtn }}" hint-placeholder-val="{{ false }}">
-        <button type="button" onClick="{{ openPerfil }}" aria-label="Mi cuenta" style="width:44px;height:44px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:9999px;cursor:pointer;padding:0">{{ userAvatarNode }}</button>
+        <button type="button" sc-camel-on-click="{{ openPerfil }}" aria-label="Mi cuenta" style="width:44px;height:44px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:9999px;cursor:pointer;padding:0">{{ userAvatarNode }}</button>
       </sc-if>
       <sc-if value="{{ showEditBtn }}" hint-placeholder-val="{{ false }}">
-        <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Button" variant="ghost" size="compact" onClick="{{ detailEdit }}" hint-size="auto,44px">Editar</x-import>
+        <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Button" variant="ghost" size="compact" sc-camel-on-click="{{ detailEdit }}" hint-size="auto,44px">Editar</x-import>
       </sc-if>
       <sc-if value="{{ showDesktopNewBtn }}" hint-placeholder-val="{{ false }}">
-        <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Button" variant="primary" size="compact" onClick="{{ openNuevo }}" iconLeft="{{ icons.newPlus }}" hint-size="auto,44px">Nuevo cliente</x-import>
+        <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Button" variant="primary" size="compact" sc-camel-on-click="{{ openNuevo }}" sc-camel-icon-left="{{ icons.newPlus }}" hint-size="auto,44px">Nuevo cliente</x-import>
       </sc-if>
     </header>
 
@@ -124,7 +124,7 @@
             </div>
             <div style="{{ hoyActionsGridStyle }}">
               <sc-for list="{{ hoyActions }}" as="a" hint-placeholder-count="4">
-                <button type="button" onClick="{{ a.onClick }}" style="{{ a.style }}" style-hover="background:var(--color-surface-2);border-color:var(--color-border-strong)">
+                <button type="button" sc-camel-on-click="{{ a.onClick }}" style="{{ a.style }}" style-hover="background:var(--color-surface-2);border-color:var(--color-border-strong)">
                   <span style="{{ a.iconWrap }}">{{ a.icon }}</span>
                   <span style="{{ a.labelStyle }}">{{ a.label }}</span>
                 </button>
@@ -140,10 +140,10 @@
                 <div style="padding:2px 18px 8px">
                   <sc-for list="{{ sec.items }}" as="s" hint-placeholder-count="2">
                     <div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-top:1px solid var(--color-border)">
-                      <button type="button" aria-label="Marcar como hecho" onClick="{{ s.onDone }}" style="width:44px;height:44px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;padding:0;margin-left:-10px">
+                      <button type="button" aria-label="Marcar como hecho" sc-camel-on-click="{{ s.onDone }}" style="width:44px;height:44px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;padding:0;margin-left:-10px">
                         <span style="width:24px;height:24px;border-radius:9999px;border:1.5px solid var(--color-border-strong);display:inline-block;transition:border-color var(--duration-fast) var(--ease-standard)" style-hover="border-color:var(--color-primary)"></span>
                       </button>
-                      <div onClick="{{ s.open }}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;cursor:pointer;padding:2px 0">
+                      <div sc-camel-on-click="{{ s.open }}" style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;cursor:pointer;padding:2px 0">
                         <span style="display:inline-flex">{{ s.avatarNode }}</span>
                         <div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1">
                           <div style="display:flex;align-items:center;gap:8px;min-width:0">
@@ -176,9 +176,9 @@
         <sc-if value="{{ showClientes }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-direction:column;gap:16px">
             <div style="position:relative">
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" value="{{ query }}" onChange="{{ setQuery }}" placeholder="Buscar por nombre, teléfono o email" icon="{{ icons.search }}" hint-size="100%,48px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" value="{{ query }}" sc-camel-on-change="{{ setQuery }}" placeholder="Buscar por nombre, teléfono o email" icon="{{ icons.search }}" hint-size="100%,48px"></x-import>
               <sc-if value="{{ hasQuery }}" hint-placeholder-val="{{ false }}">
-                <button type="button" aria-label="Limpiar búsqueda" onClick="{{ clearQuery }}" style="position:absolute;top:6px;right:6px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);cursor:pointer;color:var(--color-text-subtle)" style-hover="background:var(--color-surface-2)">{{ icons.close }}</button>
+                <button type="button" aria-label="Limpiar búsqueda" sc-camel-on-click="{{ clearQuery }}" style="position:absolute;top:6px;right:6px;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);cursor:pointer;color:var(--color-text-subtle)" style-hover="background:var(--color-surface-2)">{{ icons.close }}</button>
               </sc-if>
             </div>
             <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-subtle)">{{ clientesEyebrow }}</span>
@@ -254,9 +254,9 @@
             </x-import>
 
             <div style="{{ quickActionsStyle }}">
-              <button type="button" onClick="{{ openInteraccion }}" style="{{ quickBtnStyle }}"><span style="color:var(--color-primary);display:inline-flex">{{ icons.interaccion }}</span><span>Registrar interacción</span></button>
-              <button type="button" onClick="{{ openSeguimiento }}" style="{{ quickBtnStyle }}"><span style="color:var(--color-primary);display:inline-flex">{{ icons.seguimientoBtn }}</span><span>Programar seguimiento</span></button>
-              <button type="button" onClick="{{ openVenta }}" style="{{ quickBtnStyle }}"><span style="color:var(--color-primary);display:inline-flex">{{ icons.ventaBtn }}</span><span>Registrar venta</span></button>
+              <button type="button" sc-camel-on-click="{{ openInteraccion }}" style="{{ quickBtnStyle }}"><span style="color:var(--color-primary);display:inline-flex">{{ icons.interaccion }}</span><span>Registrar interacción</span></button>
+              <button type="button" sc-camel-on-click="{{ openSeguimiento }}" style="{{ quickBtnStyle }}"><span style="color:var(--color-primary);display:inline-flex">{{ icons.seguimientoBtn }}</span><span>Programar seguimiento</span></button>
+              <button type="button" sc-camel-on-click="{{ openVenta }}" style="{{ quickBtnStyle }}"><span style="color:var(--color-primary);display:inline-flex">{{ icons.ventaBtn }}</span><span>Registrar venta</span></button>
             </div>
 
             <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Card" title="Seguimientos pendientes" hint-size="100%,120px">
@@ -267,7 +267,7 @@
                 <div style="display:flex;flex-direction:column">
                   <sc-for list="{{ detail.pendientes }}" as="p" hint-placeholder-count="2">
                     <div style="display:flex;align-items:center;gap:12px;padding:11px 0">
-                      <button type="button" aria-label="Marcar como hecho" onClick="{{ p.onDone }}" style="{{ p.checkStyle }}"></button>
+                      <button type="button" aria-label="Marcar como hecho" sc-camel-on-click="{{ p.onDone }}" style="{{ p.checkStyle }}"></button>
                       <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1">
                         <span style="font-size:15px;font-weight:500;color:var(--color-text)">{{ p.accion }}</span>
                         <span style="{{ p.subStyle }}">{{ p.sub }}</span>
@@ -314,7 +314,7 @@
                 <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-subtle)">Gestión del equipo</span>
                 <h1 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.011em;color:var(--color-text)">{{ usuariosEyebrow }}</h1>
               </div>
-              <button type="button" onClick="{{ openUsuarioNuevo }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:var(--radius-md);background:var(--color-primary);border:none;color:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer;flex-shrink:0" style-hover="background:var(--color-primary-hover)"><span style="display:inline-flex">{{ icons.newPlus }}</span><span>Añadir usuario</span></button>
+              <button type="button" sc-camel-on-click="{{ openUsuarioNuevo }}" style="display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:var(--radius-md);background:var(--color-primary);border:none;color:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer;flex-shrink:0" style-hover="background:var(--color-primary-hover)"><span style="display:inline-flex">{{ icons.newPlus }}</span><span>Añadir usuario</span></button>
             </div>
             <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Card" padding="0" hint-size="100%,240px">
               <div style="display:flex;flex-direction:column">
@@ -326,9 +326,9 @@
                       <span style="font-size:13px;color:var(--color-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.email }}</span>
                     </div>
                     <span style="flex-shrink:0;display:inline-flex">{{ u.rolChipNode }}</span>
-                    <button type="button" aria-label="Editar usuario" onClick="{{ u.onEdit }}" style="width:38px;height:38px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);cursor:pointer;color:var(--color-text-muted)" style-hover="background:var(--color-surface-2)">{{ icons.edit }}</button>
+                    <button type="button" aria-label="Editar usuario" sc-camel-on-click="{{ u.onEdit }}" style="width:38px;height:38px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);cursor:pointer;color:var(--color-text-muted)" style-hover="background:var(--color-surface-2)">{{ icons.edit }}</button>
                     <sc-if value="{{ u.canDelete }}" hint-placeholder-val="{{ true }}">
-                      <button type="button" aria-label="Eliminar usuario" onClick="{{ u.onDelete }}" style="width:38px;height:38px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);cursor:pointer;color:var(--color-text-subtle)" style-hover="background:var(--color-error-bg)">{{ icons.trash }}</button>
+                      <button type="button" aria-label="Eliminar usuario" sc-camel-on-click="{{ u.onDelete }}" style="width:38px;height:38px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-md);cursor:pointer;color:var(--color-text-subtle)" style-hover="background:var(--color-error-bg)">{{ icons.trash }}</button>
                     </sc-if>
                   </div>
                 </sc-for>
@@ -354,7 +354,7 @@
                 <span style="font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-subtle)">Registro de ventas</span>
                 <h1 style="margin:0;font-size:24px;font-weight:600;letter-spacing:-0.011em;color:var(--color-text)">Ventas y oportunidades</h1>
               </div>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Button" variant="primary" size="compact" onClick="{{ openVentaNueva }}" iconLeft="{{ icons.newPlus }}" hint-size="auto,44px">Añadir venta</x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Button" variant="primary" size="compact" sc-camel-on-click="{{ openVentaNueva }}" sc-camel-icon-left="{{ icons.newPlus }}" hint-size="auto,44px">Añadir venta</x-import>
             </div>
             <div style="{{ ventaMetricsStyle }}">
               <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Card" hint-size="100%,108px">
@@ -374,7 +374,7 @@
             </div>
             <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;margin:0 -2px">
               <sc-for list="{{ ventaFilterChips }}" as="ch" hint-placeholder-count="4">
-                <button type="button" onClick="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
+                <button type="button" sc-camel-on-click="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
               </sc-for>
             </div>
             <sc-if value="{{ ventasEmpty }}" hint-placeholder-val="{{ false }}">
@@ -386,7 +386,7 @@
               <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Card" padding="0" hint-size="100%,320px">
                 <div style="display:flex;flex-direction:column">
                   <sc-for list="{{ ventasFiltradas }}" as="v" hint-placeholder-count="4">
-                    <button type="button" onClick="{{ v.open }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 18px;border:none;border-bottom:1px solid var(--color-border);background:none;cursor:pointer;text-align:left" style-hover="background:var(--color-surface-2)">
+                    <button type="button" sc-camel-on-click="{{ v.open }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px 18px;border:none;border-bottom:1px solid var(--color-border);background:none;cursor:pointer;text-align:left" style-hover="background:var(--color-surface-2)">
                       <span style="{{ v.iconWrap }}">{{ v.iconNode }}</span>
                       <div style="display:flex;flex-direction:column;gap:3px;min-width:0;flex:1">
                         <span style="font-size:15px;font-weight:500;color:var(--color-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ v.concepto }}</span>
@@ -420,19 +420,19 @@
             </x-import>
             <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Card" padding="0" hint-size="100%,160px">
               <div style="display:flex;flex-direction:column">
-                <button type="button" onClick="{{ openEditarDatos }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:14px 18px;border:none;border-bottom:1px solid var(--color-border);background:none;cursor:pointer;text-align:left;font-family:var(--font-sans);font-size:15px;color:var(--color-text)" style-hover="background:var(--color-surface-2)">
+                <button type="button" sc-camel-on-click="{{ openEditarDatos }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:14px 18px;border:none;border-bottom:1px solid var(--color-border);background:none;cursor:pointer;text-align:left;font-family:var(--font-sans);font-size:15px;color:var(--color-text)" style-hover="background:var(--color-surface-2)">
                   <span style="color:var(--color-text-subtle);display:inline-flex;flex-shrink:0">{{ icons.edit }}</span>
                   <span style="flex:1;min-width:0">Editar mis datos</span>
                   <span style="color:var(--color-text-subtle);display:inline-flex;flex-shrink:0">{{ icons.chevR }}</span>
                 </button>
-                <button type="button" onClick="{{ openCambiarPass }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:14px 18px;border:none;border-bottom:1px solid var(--color-border);background:none;cursor:pointer;text-align:left;font-family:var(--font-sans);font-size:15px;color:var(--color-text)" style-hover="background:var(--color-surface-2)">
+                <button type="button" sc-camel-on-click="{{ openCambiarPass }}" style="display:flex;align-items:center;gap:12px;width:100%;padding:14px 18px;border:none;border-bottom:1px solid var(--color-border);background:none;cursor:pointer;text-align:left;font-family:var(--font-sans);font-size:15px;color:var(--color-text)" style-hover="background:var(--color-surface-2)">
                   <span style="color:var(--color-text-subtle);display:inline-flex;flex-shrink:0">{{ icons.lock }}</span>
                   <span style="flex:1;min-width:0">Cambiar contraseña</span>
                   <span style="color:var(--color-text-subtle);display:inline-flex;flex-shrink:0">{{ icons.chevR }}</span>
                 </button>
               </div>
             </x-import>
-            <button type="button" onClick="{{ openLogoutConfirm }}" style="width:100%;height:48px;border-radius:var(--radius-md);background:var(--color-surface);border:1px solid var(--color-border-strong);color:var(--color-error-text);font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px" style-hover="background:var(--color-error-bg)"><span style="display:inline-flex">{{ icons.logout }}</span><span>Cerrar sesión</span></button>
+            <button type="button" sc-camel-on-click="{{ openLogoutConfirm }}" style="width:100%;height:48px;border-radius:var(--radius-md);background:var(--color-surface);border:1px solid var(--color-border-strong);color:var(--color-error-text);font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px" style-hover="background:var(--color-error-bg)"><span style="display:inline-flex">{{ icons.logout }}</span><span>Cerrar sesión</span></button>
           </div>
         </sc-if>
 
@@ -440,11 +440,11 @@
     </div>
 
     <sc-if value="{{ showFab }}" hint-placeholder-val="{{ false }}">
-      <button type="button" aria-label="Nuevo cliente" onClick="{{ openNuevo }}" style="position:absolute;right:16px;bottom:76px;width:56px;height:56px;border-radius:9999px;border:none;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);cursor:pointer;z-index:50" style-hover="background:var(--color-primary-hover)">{{ icons.fabPlus }}</button>
+      <button type="button" aria-label="Nuevo cliente" sc-camel-on-click="{{ openNuevo }}" style="position:absolute;right:16px;bottom:76px;width:56px;height:56px;border-radius:9999px;border:none;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-lg);cursor:pointer;z-index:50" style-hover="background:var(--color-primary-hover)">{{ icons.fabPlus }}</button>
     </sc-if>
 
     <sc-if value="{{ showTabbar }}" hint-placeholder-val="{{ true }}">
-      <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.TabBar" items="{{ tabItems }}" active="{{ tab }}" onChange="{{ setTab }}" style="{{ tabbarStyle }}" hint-size="100%,56px"></x-import>
+      <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.TabBar" items="{{ tabItems }}" active="{{ tab }}" sc-camel-on-change="{{ setTab }}" style="{{ tabbarStyle }}" hint-size="100%,56px"></x-import>
     </sc-if>
 
   </div>
@@ -455,57 +455,57 @@
         <span style="display:inline-flex;color:var(--color-primary);flex-shrink:0">{{ toastCheck }}</span>
         <span style="flex:1;font-size:14px;color:#fff">{{ toastMsg }}</span>
         <sc-if value="{{ toastUndo }}" hint-placeholder-val="{{ false }}">
-          <button type="button" onClick="{{ undoDone }}" style="background:none;border:none;color:var(--color-primary);font-family:var(--font-sans);font-size:14px;font-weight:600;cursor:pointer;padding:6px 8px;white-space:nowrap">Deshacer</button>
+          <button type="button" sc-camel-on-click="{{ undoDone }}" style="background:none;border:none;color:var(--color-primary);font-family:var(--font-sans);font-size:14px;font-weight:600;cursor:pointer;padding:6px 8px;white-space:nowrap">Deshacer</button>
         </sc-if>
       </div>
     </div>
   </sc-if>
 
   <sc-if value="{{ overlayOpen }}" hint-placeholder-val="{{ false }}">
-    <div style="{{ scrimStyle }}" onClick="{{ closeOverlay }}">
-      <div style="{{ sheetStyle }}" onClick="{{ stopProp }}" ref="{{ setSheetRef }}" role="dialog" aria-modal="true" aria-label="{{ overlayTitle }}">
+    <div style="{{ scrimStyle }}" sc-camel-on-click="{{ closeOverlay }}">
+      <div style="{{ sheetStyle }}" sc-camel-on-click="{{ stopProp }}" ref="{{ setSheetRef }}" role="dialog" aria-modal="true" aria-label="{{ overlayTitle }}">
         <div style="padding:18px 20px 24px;display:flex;flex-direction:column;gap:18px">
           <sc-if value="{{ showGrabber }}" hint-placeholder-val="{{ false }}">
             <div style="width:36px;height:4px;border-radius:9999px;background:var(--color-border-strong);margin:0 auto 2px"></div>
           </sc-if>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
             <h3 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-0.011em;color:var(--color-text)">{{ overlayTitle }}</h3>
-            <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.IconButton" variant="ghost" size="compact" aria-label="Cerrar" onClick="{{ closeOverlay }}" hint-size="44px,44px">{{ icons.close }}</x-import>
+            <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.IconButton" variant="ghost" size="compact" aria-label="Cerrar" sc-camel-on-click="{{ closeOverlay }}" hint-size="44px,44px">{{ icons.close }}</x-import>
           </div>
 
           <sc-if value="{{ isNuevoOverlay }}" hint-placeholder-val="{{ true }}">
             <div style="display:flex;flex-direction:column;gap:14px">
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Nombre" value="{{ form.name }}" onChange="{{ setName }}" placeholder="Marta López" error="{{ nameErr }}" autocapitalize="words" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Empresa" value="{{ form.company }}" onChange="{{ setCompany }}" placeholder="Acme S.L." icon="{{ icons.building }}" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Teléfono" value="{{ form.phone }}" onChange="{{ setPhone }}" placeholder="+34 600 000 000" icon="{{ icons.phone }}" type="tel" inputmode="tel" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Email" value="{{ form.email }}" onChange="{{ setEmail }}" placeholder="nombre@empresa.es" icon="{{ icons.mail }}" error="{{ emailErr }}" type="email" inputmode="email" autocapitalize="none" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Nombre" value="{{ form.name }}" sc-camel-on-change="{{ setName }}" placeholder="Marta López" error="{{ nameErr }}" autocapitalize="words" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Empresa" value="{{ form.company }}" sc-camel-on-change="{{ setCompany }}" placeholder="Acme S.L." icon="{{ icons.building }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Teléfono" value="{{ form.phone }}" sc-camel-on-change="{{ setPhone }}" placeholder="+34 600 000 000" icon="{{ icons.phone }}" type="tel" inputmode="tel" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Email" value="{{ form.email }}" sc-camel-on-change="{{ setEmail }}" placeholder="nombre@empresa.es" icon="{{ icons.mail }}" error="{{ emailErr }}" type="email" inputmode="email" autocapitalize="none" hint-size="100%,74px"></x-import>
               <span style="{{ contactNoteStyle }}">{{ contactNote }}</span>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <span style="font-size:14px;font-weight:500;color:var(--color-text)">Canal de origen</span>
                 <div style="display:flex;flex-wrap:wrap;gap:8px">
                   <sc-for list="{{ canalChips }}" as="ch" hint-placeholder-count="4">
-                    <button type="button" onClick="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
+                    <button type="button" sc-camel-on-click="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
                   </sc-for>
                 </div>
               </div>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <span style="font-size:14px;font-weight:500;color:var(--color-text)">Nota</span>
-                <textarea value="{{ form.nota }}" onChange="{{ setNota }}" placeholder="Detalle del primer contacto, necesidades…" rows="3" style="width:100%;min-height:84px;resize:vertical;padding:12px 14px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font-family:var(--font-sans);font-size:15px;line-height:1.5;outline:none" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-subtle)"></textarea>
+                <textarea value="{{ form.nota }}" sc-camel-on-change="{{ setNota }}" placeholder="Detalle del primer contacto, necesidades…" rows="3" style="width:100%;min-height:84px;resize:vertical;padding:12px 14px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font-family:var(--font-sans);font-size:15px;line-height:1.5;outline:none" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-subtle)"></textarea>
               </div>
             </div>
           </sc-if>
 
           <sc-if value="{{ isEditarOverlay }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;flex-direction:column;gap:14px">
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Nombre" value="{{ form.name }}" onChange="{{ setName }}" placeholder="Marta López" error="{{ nameErr }}" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Empresa" value="{{ form.company }}" onChange="{{ setCompany }}" placeholder="Acme S.L." icon="{{ icons.building }}" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Email" value="{{ form.email }}" onChange="{{ setEmail }}" placeholder="nombre@empresa.es" icon="{{ icons.mail }}" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Teléfono" value="{{ form.phone }}" onChange="{{ setPhone }}" placeholder="+34 600 000 000" icon="{{ icons.phone }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Nombre" value="{{ form.name }}" sc-camel-on-change="{{ setName }}" placeholder="Marta López" error="{{ nameErr }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Empresa" value="{{ form.company }}" sc-camel-on-change="{{ setCompany }}" placeholder="Acme S.L." icon="{{ icons.building }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Email" value="{{ form.email }}" sc-camel-on-change="{{ setEmail }}" placeholder="nombre@empresa.es" icon="{{ icons.mail }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Teléfono" value="{{ form.phone }}" sc-camel-on-change="{{ setPhone }}" placeholder="+34 600 000 000" icon="{{ icons.phone }}" hint-size="100%,74px"></x-import>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <span style="font-size:14px;font-weight:500;color:var(--color-text)">Estado</span>
                 <div style="display:flex;flex-wrap:wrap;gap:8px">
                   <sc-for list="{{ statusChips }}" as="sopt" hint-placeholder-count="5">
-                    <button type="button" onClick="{{ sopt.onClick }}" style="{{ sopt.style }}">{{ sopt.node }}</button>
+                    <button type="button" sc-camel-on-click="{{ sopt.onClick }}" style="{{ sopt.style }}">{{ sopt.node }}</button>
                   </sc-for>
                 </div>
               </div>
@@ -514,26 +514,26 @@
 
           <sc-if value="{{ isTaskOverlay }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;flex-direction:column;gap:14px">
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Título" value="{{ taskForm.title }}" onChange="{{ setTaskTitle }}" placeholder="Llamar para cierre" error="{{ taskTitleErr }}" autocapitalize="sentences" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Título" value="{{ taskForm.title }}" sc-camel-on-change="{{ setTaskTitle }}" placeholder="Llamar para cierre" error="{{ taskTitleErr }}" autocapitalize="sentences" hint-size="100%,74px"></x-import>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
                   <span style="font-size:14px;font-weight:500;color:var(--color-text)">Cliente</span>
-                  <button type="button" onClick="{{ openNuevoFromTask }}" style="display:inline-flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:2px 4px;font-family:var(--font-sans);font-size:13px;font-weight:600;color:var(--color-primary)" style-hover="text-decoration:underline"><span style="display:inline-flex">{{ icons.newPlus }}</span><span>Nuevo cliente</span></button>
+                  <button type="button" sc-camel-on-click="{{ openNuevoFromTask }}" style="display:inline-flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:2px 4px;font-family:var(--font-sans);font-size:13px;font-weight:600;color:var(--color-primary)" style-hover="text-decoration:underline"><span style="display:inline-flex">{{ icons.newPlus }}</span><span>Nuevo cliente</span></button>
                 </div>
                 <div style="position:relative">
-                  <select value="{{ taskForm.clienteId }}" onChange="{{ setTaskCliente }}" style="width:100%;height:48px;padding:0 40px 0 14px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font-family:var(--font-sans);font-size:15px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-subtle)">
+                  <sc-raw-select value="{{ taskForm.clienteId }}" sc-camel-on-change="{{ setTaskCliente }}" style="width:100%;height:48px;padding:0 40px 0 14px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font-family:var(--font-sans);font-size:15px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-subtle)">
                     <option value="">Selecciona un cliente</option>
                     <sc-for list="{{ taskClienteOptions }}" as="o" hint-placeholder-count="3">
                       <option value="{{ o.value }}">{{ o.label }}</option>
                     </sc-for>
-                  </select>
+                  </sc-raw-select>
                   <span style="position:absolute;top:50%;right:12px;transform:translateY(-50%);pointer-events:none;color:var(--color-text-subtle);display:inline-flex">{{ icons.chevDown }}</span>
                 </div>
                 <sc-if value="{{ taskClienteErr }}" hint-placeholder-val="{{ false }}">
                   <span style="font-size:13px;color:var(--color-error-text)">{{ taskClienteErr }}</span>
                 </sc-if>
               </div>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Fecha y hora" value="{{ taskForm.date }}" onChange="{{ setTaskDate }}" type="date" icon="{{ icons.calendar }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Fecha y hora" value="{{ taskForm.date }}" sc-camel-on-change="{{ setTaskDate }}" type="date" icon="{{ icons.calendar }}" hint-size="100%,74px"></x-import>
             </div>
           </sc-if>
 
@@ -543,12 +543,12 @@
                 <div style="display:flex;flex-direction:column;gap:8px">
                   <span style="font-size:14px;font-weight:500;color:var(--color-text)">Cliente</span>
                   <div style="position:relative">
-                    <select value="{{ interClienteValue }}" onChange="{{ setInterCliente }}" style="width:100%;height:48px;padding:0 40px 0 14px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font-family:var(--font-sans);font-size:15px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-subtle)">
+                    <sc-raw-select value="{{ interClienteValue }}" sc-camel-on-change="{{ setInterCliente }}" style="width:100%;height:48px;padding:0 40px 0 14px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font-family:var(--font-sans);font-size:15px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-subtle)">
                       <option value="">Selecciona un cliente</option>
                       <sc-for list="{{ interClienteOptions }}" as="o" hint-placeholder-count="3">
                         <option value="{{ o.value }}">{{ o.label }}</option>
                       </sc-for>
-                    </select>
+                    </sc-raw-select>
                     <span style="position:absolute;top:50%;right:12px;transform:translateY(-50%);pointer-events:none;color:var(--color-text-subtle);display:inline-flex">{{ icons.chevDown }}</span>
                   </div>
                   <sc-if value="{{ interClienteErr }}" hint-placeholder-val="{{ false }}">
@@ -560,14 +560,14 @@
                 <span style="font-size:14px;font-weight:500;color:var(--color-text)">Canal</span>
                 <div style="display:flex;flex-wrap:wrap;gap:8px">
                   <sc-for list="{{ interTipoChips }}" as="ch" hint-placeholder-count="4">
-                    <button type="button" onClick="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
+                    <button type="button" sc-camel-on-click="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
                   </sc-for>
                 </div>
               </div>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Fecha" value="{{ interForm.fecha }}" onChange="{{ setInterFecha }}" type="date" icon="{{ icons.calendar }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Fecha" value="{{ interForm.fecha }}" sc-camel-on-change="{{ setInterFecha }}" type="date" icon="{{ icons.calendar }}" hint-size="100%,74px"></x-import>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <span style="font-size:14px;font-weight:500;color:var(--color-text)">Nota</span>
-                <textarea value="{{ interForm.texto }}" onChange="{{ setInterTexto }}" placeholder="Qué se ha hablado, próximos pasos…" rows="3" style="width:100%;min-height:84px;resize:vertical;padding:12px 14px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font-family:var(--font-sans);font-size:15px;line-height:1.5;outline:none" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-subtle)"></textarea>
+                <textarea value="{{ interForm.texto }}" sc-camel-on-change="{{ setInterTexto }}" placeholder="Qué se ha hablado, próximos pasos…" rows="3" style="width:100%;min-height:84px;resize:vertical;padding:12px 14px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font-family:var(--font-sans);font-size:15px;line-height:1.5;outline:none" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-subtle)"></textarea>
                 <sc-if value="{{ interTextoErr }}" hint-placeholder-val="{{ false }}">
                   <span style="font-size:13px;color:var(--color-error-text)">{{ interTextoErr }}</span>
                 </sc-if>
@@ -585,12 +585,12 @@
                 <div style="display:flex;flex-direction:column;gap:8px">
                   <span style="font-size:14px;font-weight:500;color:var(--color-text)">Cliente</span>
                   <div style="position:relative">
-                    <select value="{{ ventaClienteValue }}" onChange="{{ setVentaCliente }}" style="width:100%;height:48px;padding:0 40px 0 14px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font-family:var(--font-sans);font-size:15px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-subtle)">
+                    <sc-raw-select value="{{ ventaClienteValue }}" sc-camel-on-change="{{ setVentaCliente }}" style="width:100%;height:48px;padding:0 40px 0 14px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-text);font-family:var(--font-sans);font-size:15px;outline:none;appearance:none;-webkit-appearance:none;cursor:pointer" style-focus="border-color:var(--color-primary);box-shadow:0 0 0 3px var(--color-primary-subtle)">
                       <option value="">Selecciona un cliente</option>
                       <sc-for list="{{ ventaClienteOptions }}" as="o" hint-placeholder-count="3">
                         <option value="{{ o.value }}">{{ o.label }}</option>
                       </sc-for>
-                    </select>
+                    </sc-raw-select>
                     <span style="position:absolute;top:50%;right:12px;transform:translateY(-50%);pointer-events:none;color:var(--color-text-subtle);display:inline-flex">{{ icons.chevDown }}</span>
                   </div>
                   <sc-if value="{{ ventaClienteErr }}" hint-placeholder-val="{{ false }}">
@@ -598,29 +598,29 @@
                   </sc-if>
                 </div>
               </sc-if>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Qué se vende" value="{{ ventaForm.concepto }}" onChange="{{ setVentaConcepto }}" placeholder="Licencia anual, servicio…" error="{{ ventaConceptoErr }}" autocapitalize="sentences" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Importe (€)" value="{{ ventaForm.importe }}" onChange="{{ setVentaImporte }}" placeholder="1200" error="{{ ventaImporteErr }}" type="tel" inputmode="numeric" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Qué se vende" value="{{ ventaForm.concepto }}" sc-camel-on-change="{{ setVentaConcepto }}" placeholder="Licencia anual, servicio…" error="{{ ventaConceptoErr }}" autocapitalize="sentences" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Importe (€)" value="{{ ventaForm.importe }}" sc-camel-on-change="{{ setVentaImporte }}" placeholder="1200" error="{{ ventaImporteErr }}" type="tel" inputmode="numeric" hint-size="100%,74px"></x-import>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <span style="font-size:14px;font-weight:500;color:var(--color-text)">Estado</span>
                 <div style="display:flex;flex-wrap:wrap;gap:8px">
                   <sc-for list="{{ ventaEstadoChips }}" as="ch" hint-placeholder-count="3">
-                    <button type="button" onClick="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
+                    <button type="button" sc-camel-on-click="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
                   </sc-for>
                 </div>
               </div>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Fecha" value="{{ ventaForm.fecha }}" onChange="{{ setVentaFecha }}" type="date" icon="{{ icons.calendar }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Fecha" value="{{ ventaForm.fecha }}" sc-camel-on-change="{{ setVentaFecha }}" type="date" icon="{{ icons.calendar }}" hint-size="100%,74px"></x-import>
             </div>
           </sc-if>
 
           <sc-if value="{{ isSeguimientoOverlay }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;flex-direction:column;gap:14px">
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Qué hay que hacer" value="{{ segForm.accion }}" onChange="{{ setSegAccion }}" placeholder="Llamar para cerrar la propuesta" error="{{ segAccionErr }}" autocapitalize="sentences" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Fecha" value="{{ segForm.fecha }}" onChange="{{ setSegFecha }}" type="date" icon="{{ icons.calendar }}" error="{{ segFechaErr }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Qué hay que hacer" value="{{ segForm.accion }}" sc-camel-on-change="{{ setSegAccion }}" placeholder="Llamar para cerrar la propuesta" error="{{ segAccionErr }}" autocapitalize="sentences" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Fecha" value="{{ segForm.fecha }}" sc-camel-on-change="{{ setSegFecha }}" type="date" icon="{{ icons.calendar }}" error="{{ segFechaErr }}" hint-size="100%,74px"></x-import>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <span style="font-size:14px;font-weight:500;color:var(--color-text)">Responsable</span>
                 <div style="display:flex;flex-wrap:wrap;gap:8px">
                   <sc-for list="{{ segResponsableChips }}" as="ch" hint-placeholder-count="2">
-                    <button type="button" onClick="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
+                    <button type="button" sc-camel-on-click="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
                   </sc-for>
                 </div>
               </div>
@@ -629,13 +629,13 @@
 
           <sc-if value="{{ isUsuarioOverlay }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;flex-direction:column;gap:14px">
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Nombre" value="{{ userForm.name }}" onChange="{{ setUserName }}" placeholder="Nombre y apellidos" error="{{ userNameErr }}" autocapitalize="words" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Email" value="{{ userForm.email }}" onChange="{{ setUserEmail }}" placeholder="nombre@empresa.com" type="email" inputmode="email" autocapitalize="none" error="{{ userEmailErr }}" icon="{{ icons.mail }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Nombre" value="{{ userForm.name }}" sc-camel-on-change="{{ setUserName }}" placeholder="Nombre y apellidos" error="{{ userNameErr }}" autocapitalize="words" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Email" value="{{ userForm.email }}" sc-camel-on-change="{{ setUserEmail }}" placeholder="nombre@empresa.com" type="email" inputmode="email" autocapitalize="none" error="{{ userEmailErr }}" icon="{{ icons.mail }}" hint-size="100%,74px"></x-import>
               <div style="display:flex;flex-direction:column;gap:8px">
                 <span style="font-size:14px;font-weight:500;color:var(--color-text)">Rol</span>
                 <div style="display:flex;flex-wrap:wrap;gap:8px">
                   <sc-for list="{{ userRolChips }}" as="ch" hint-placeholder-count="2">
-                    <button type="button" onClick="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
+                    <button type="button" sc-camel-on-click="{{ ch.onClick }}" style="{{ ch.style }}">{{ ch.label }}</button>
                   </sc-for>
                 </div>
               </div>
@@ -646,24 +646,24 @@
             <div style="display:flex;flex-direction:column;gap:18px">
               <p style="margin:0;font-size:14px;color:var(--color-text-muted);line-height:1.5">¿Seguro que quieres eliminar a <strong style="color:var(--color-text);font-weight:600">{{ deleteUserName }}</strong>? Esta acción no se puede deshacer.</p>
               <div style="display:flex;gap:10px;padding-top:4px">
-                <button type="button" onClick="{{ closeOverlay }}" style="flex:1;height:48px;border-radius:var(--radius-md);background:var(--color-surface);border:1px solid var(--color-border-strong);color:var(--color-text);font-family:var(--font-sans);font-size:15px;font-weight:500;cursor:pointer" style-hover="background:var(--color-surface-2)">Cancelar</button>
-                <button type="button" onClick="{{ confirmDeleteUsuario }}" style="flex:1;height:48px;border-radius:var(--radius-md);background:var(--color-error);border:none;color:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer" style-hover="filter:brightness(.92)">Eliminar</button>
+                <button type="button" sc-camel-on-click="{{ closeOverlay }}" style="flex:1;height:48px;border-radius:var(--radius-md);background:var(--color-surface);border:1px solid var(--color-border-strong);color:var(--color-text);font-family:var(--font-sans);font-size:15px;font-weight:500;cursor:pointer" style-hover="background:var(--color-surface-2)">Cancelar</button>
+                <button type="button" sc-camel-on-click="{{ confirmDeleteUsuario }}" style="flex:1;height:48px;border-radius:var(--radius-md);background:var(--color-error);border:none;color:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer" style-hover="filter:brightness(.92)">Eliminar</button>
               </div>
             </div>
           </sc-if>
 
           <sc-if value="{{ isEditarDatosOverlay }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;flex-direction:column;gap:14px">
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Nombre" value="{{ profileForm.name }}" onChange="{{ setProfileName }}" placeholder="Nombre y apellidos" error="{{ profNameErr }}" autocapitalize="words" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Email" value="{{ profileForm.email }}" onChange="{{ setProfileEmail }}" placeholder="nombre@empresa.com" type="email" inputmode="email" autocapitalize="none" error="{{ profEmailErr }}" icon="{{ icons.mail }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Nombre" value="{{ profileForm.name }}" sc-camel-on-change="{{ setProfileName }}" placeholder="Nombre y apellidos" error="{{ profNameErr }}" autocapitalize="words" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Email" value="{{ profileForm.email }}" sc-camel-on-change="{{ setProfileEmail }}" placeholder="nombre@empresa.com" type="email" inputmode="email" autocapitalize="none" error="{{ profEmailErr }}" icon="{{ icons.mail }}" hint-size="100%,74px"></x-import>
             </div>
           </sc-if>
 
           <sc-if value="{{ isCambiarPassOverlay }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;flex-direction:column;gap:14px">
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Contraseña actual" value="{{ passForm.actual }}" onChange="{{ setPassActual }}" type="password" autocomplete="current-password" error="{{ passActualErr }}" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Nueva contraseña" value="{{ passForm.nueva }}" onChange="{{ setPassNueva }}" type="password" autocomplete="new-password" error="{{ passNuevaErr }}" helper="Mínimo 6 caracteres" hint-size="100%,74px"></x-import>
-              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Repetir nueva contraseña" value="{{ passForm.repetir }}" onChange="{{ setPassRepetir }}" type="password" autocomplete="new-password" error="{{ passRepetirErr }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Contraseña actual" value="{{ passForm.actual }}" sc-camel-on-change="{{ setPassActual }}" type="password" autocomplete="current-password" error="{{ passActualErr }}" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Nueva contraseña" value="{{ passForm.nueva }}" sc-camel-on-change="{{ setPassNueva }}" type="password" autocomplete="new-password" error="{{ passNuevaErr }}" helper="Mínimo 6 caracteres" hint-size="100%,74px"></x-import>
+              <x-import component-from-global-scope="VibeCRMDesignSystem_46d208.Input" label="Repetir nueva contraseña" value="{{ passForm.repetir }}" sc-camel-on-change="{{ setPassRepetir }}" type="password" autocomplete="new-password" error="{{ passRepetirErr }}" hint-size="100%,74px"></x-import>
             </div>
           </sc-if>
 
@@ -671,16 +671,16 @@
             <div style="display:flex;flex-direction:column;gap:18px">
               <p style="margin:0;font-size:14px;color:var(--color-text-muted);line-height:1.5">¿Seguro que quieres cerrar sesión? Tendrás que volver a iniciar sesión para acceder.</p>
               <div style="display:flex;gap:10px;padding-top:4px">
-                <button type="button" onClick="{{ closeOverlay }}" style="flex:1;height:48px;border-radius:var(--radius-md);background:var(--color-surface);border:1px solid var(--color-border-strong);color:var(--color-text);font-family:var(--font-sans);font-size:15px;font-weight:500;cursor:pointer" style-hover="background:var(--color-surface-2)">Cancelar</button>
-                <button type="button" onClick="{{ doLogout }}" style="flex:1;height:48px;border-radius:var(--radius-md);background:var(--color-error);border:none;color:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer" style-hover="filter:brightness(.92)">Cerrar sesión</button>
+                <button type="button" sc-camel-on-click="{{ closeOverlay }}" style="flex:1;height:48px;border-radius:var(--radius-md);background:var(--color-surface);border:1px solid var(--color-border-strong);color:var(--color-text);font-family:var(--font-sans);font-size:15px;font-weight:500;cursor:pointer" style-hover="background:var(--color-surface-2)">Cancelar</button>
+                <button type="button" sc-camel-on-click="{{ doLogout }}" style="flex:1;height:48px;border-radius:var(--radius-md);background:var(--color-error);border:none;color:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer" style-hover="filter:brightness(.92)">Cerrar sesión</button>
               </div>
             </div>
           </sc-if>
 
           <sc-if value="{{ showOverlayFooter }}" hint-placeholder-val="{{ true }}">
           <div style="display:flex;gap:10px;padding-top:4px">
-            <button type="button" onClick="{{ closeOverlay }}" style="flex:0 0 auto;height:48px;padding:0 18px;border-radius:var(--radius-md);background:var(--color-surface);border:1px solid var(--color-border-strong);color:var(--color-text);font-family:var(--font-sans);font-size:15px;font-weight:500;cursor:pointer" style-hover="background:var(--color-surface-2)">Cancelar</button>
-            <button type="button" onClick="{{ saveOverlay }}" style="flex:1;height:48px;border-radius:var(--radius-md);background:var(--color-primary);border:none;color:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--color-primary-hover)">Guardar</button>
+            <button type="button" sc-camel-on-click="{{ closeOverlay }}" style="flex:0 0 auto;height:48px;padding:0 18px;border-radius:var(--radius-md);background:var(--color-surface);border:1px solid var(--color-border-strong);color:var(--color-text);font-family:var(--font-sans);font-size:15px;font-weight:500;cursor:pointer" style-hover="background:var(--color-surface-2)">Cancelar</button>
+            <button type="button" sc-camel-on-click="{{ saveOverlay }}" style="flex:1;height:48px;border-radius:var(--radius-md);background:var(--color-primary);border:none;color:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;cursor:pointer" style-hover="background:var(--color-primary-hover)">Guardar</button>
           </div>
           </sc-if>
         </div>
