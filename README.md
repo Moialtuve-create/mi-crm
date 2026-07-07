@@ -13,52 +13,94 @@ UI en español.
 
 ## Stack
 
-- **Next.js** (App Router, TypeScript) + **Tailwind CSS v4** (tokens del design system en `src/app/globals.css`)
-- **Convex** — base de datos y backend (`convex/schema.ts`: clientes, interacciones, seguimientos, ventas, usuarios)
+- **Next.js 16** (App Router, TypeScript) + **Tailwind CSS v4** (tokens del design system en `src/app/globals.css`)
+- **Convex** — base de datos y backend reactivo (`convex/schema.ts`: clientes, interacciones, seguimientos, ventas, usuarios)
 - **Lucide** — iconos (trazo 1.5px)
-- Deploy: **GitHub → Railway**
+- **Node** >= 20.9 (el repo fija **22** en `.nvmrc`)
+- Deploy: **GitHub → Railway** (Convex se hospeda aparte)
 
 ## Desarrollo
 
 ```bash
 npm install
-npx convex dev     # primera vez: crea el proyecto Convex y escribe .env.local
-npm run dev        # http://localhost:3000
+
+# 1) Backend Convex: crea/conecta el deployment de desarrollo y escribe .env.local
+#    (NEXT_PUBLIC_CONVEX_URL y CONVEX_DEPLOYMENT). Copia .env.example si hace falta.
+npx convex dev            # deja el proceso vivo, o usa `npx convex dev --once`
+
+# 2) Datos de ejemplo (solo desarrollo, destructivo, protegido):
+npx convex env set SEED_ENABLED true
+npx convex run seed:run "{\"confirm\":\"SEED_DEV\",\"hoy\":\"$(date +%F)\"}"
+
+# 3) App
+npm run dev               # http://localhost:3000  (abre en /hoy)
 ```
 
-Sin `NEXT_PUBLIC_CONVEX_URL` la app arranca igualmente (sin backend), para poder
-construir pantallas con datos mock. Copia `.env.example` a `.env.local`.
+> La app **necesita Convex** (las pantallas usan `useQuery`): si falta
+> `NEXT_PUBLIC_CONVEX_URL` se muestra un aviso en vez de arrancar.
+> El seed borra e inserta las tablas del MVP; el arg `hoy` es tu fecha **local**
+> (`$(date +%F)`) para que los grupos Atrasado/Hoy/Próximo cuadren con tu zona horaria.
+
+**Login de prueba (mock):** `marta@acme.es` (Dueña) o `carlos@betadigital.com` (comercial),
+cualquier contraseña. Sin pantalla de login todavía (MOI-80): la app arranca con Carlos.
+
+## Scripts
+
+| Script          | Acción                             |
+| --------------- | ---------------------------------- |
+| `npm run dev`   | Servidor de desarrollo (Turbopack) |
+| `npm run build` | Build de producción                |
+| `npm run start` | Sirve el build de producción       |
+| `npm run lint`  | ESLint                             |
 
 ## Rutas (diseño final)
 
-| Ruta | Pantalla | Linear |
-|---|---|---|
-| `/login` | Inicio de sesión | MOI-80 |
-| `/hoy` | Tareas del día (pantalla inicial) | MOI-40 |
-| `/clientes` | Lista de clientes con buscador | MOI-35 |
-| `/clientes/[id]` | Ficha de cliente (nodo central) | MOI-36/37/38/39 |
-| `/ventas` | Ventas y oportunidades | MOI-42/43 |
-| `/equipo` | Gestión de usuarios (solo Dueña) | MOI-81 |
-| `/cuenta` | Perfil / Mi cuenta | MOI-82 |
+| Ruta | Pantalla | Linear | Estado |
+|---|---|---|---|
+| `/login` | Inicio de sesión | MOI-80 | placeholder |
+| `/hoy` | Tareas del día (pantalla inicial) | MOI-40 | **implementada** |
+| `/clientes` | Lista de clientes con buscador | MOI-35 | placeholder |
+| `/clientes/[id]` | Ficha de cliente (nodo central) | MOI-36/37/38/39 | placeholder |
+| `/ventas` | Ventas y oportunidades | MOI-42/43 | placeholder |
+| `/equipo` | Gestión de usuarios (solo Dueña) | MOI-81 | placeholder |
+| `/cuenta` | Perfil / Mi cuenta | MOI-82 | placeholder |
 
-Los formularios no son rutas: son overlays (hoja inferior en móvil / modal en
-escritorio). Ver `src/components/README.md`.
+Navegación (shell responsive, tab bar móvil / sidebar escritorio) y "Tareas del día"
+con datos reales de Convex ya están implementadas (**MOI-33 + MOI-40**). Los formularios
+no son rutas: son overlays (pendientes: MOI-39/37/43/34).
 
 ## Estructura
 
 ```
-convex/            esquema y funciones de Convex (backend)
-design/            diseño: design system, prototipo hifi y handoff (NO tocar; es la referencia)
+convex/            backend: schema + queries/mutations (seguimientos, usuarios) + seed
+design/            diseño: design system, prototipo hifi y handoff (referencia, NO es código de la app)
 public/            estáticos + manifest PWA
 src/app/           rutas (App Router): login, (app)/hoy|clientes|ventas|equipo|cuenta
-src/components/    ui/ · layout/ · overlays/ · providers/
-src/lib/           auth.ts (interfaz del proveedor de auth — punto de integración)
+src/components/    shell/ (navegación) · ui/ (design system) · providers/
+src/lib/           helpers (fecha, estados, sesión mock) + auth.ts (interfaz del proveedor de auth)
 ```
 
-## Deploy en Railway
+## Deploy en Railway (conectado a GitHub)
 
-1. Sube el repo a GitHub y crea un servicio en Railway desde ese repo
-   (detecta Next.js: build `npm run build`, start `npm run start`).
-2. Crea el deployment de producción de Convex: `npx convex deploy`.
-3. En Railway, añade la variable `NEXT_PUBLIC_CONVEX_URL` con la URL de
-   producción de Convex (Convex se hospeda aparte; Railway solo sirve la app Next).
+Railway despliega automáticamente cada push a `main`. La configuración está versionada en
+[`railway.json`](./railway.json):
+
+- **Build:** `npx convex deploy --cmd 'npm run build'` — despliega las funciones de Convex al
+  deployment de **producción** e inyecta `NEXT_PUBLIC_CONVEX_URL` en el build de Next.
+- **Start:** `npm run start` (Next escucha en `$PORT`, que define Railway).
+- **Node:** 20.9+ vía `.nvmrc` / `engines`.
+
+**Variables del servicio en Railway (una vez):**
+
+1. En el dashboard de Convex → Settings → *Deploy keys* → genera una **Production deploy key**.
+2. En Railway → variables del servicio, añade `CONVEX_DEPLOY_KEY` = esa key.
+   No hace falta definir `NEXT_PUBLIC_CONVEX_URL` a mano: `convex deploy --cmd` la inyecta.
+
+**Datos en producción:** como no hay login todavía (MOI-80), la app usa el usuario por
+defecto `carlos@betadigital.com`, que debe existir en la BD de producción. Para una demo,
+siembra producción una vez (recuerda: el seed **borra** las tablas del MVP):
+
+```bash
+npx convex env set SEED_ENABLED true --prod
+npx convex run seed:run "{\"confirm\":\"SEED_DEV\",\"hoy\":\"$(date +%F)\"}" --prod
+```
