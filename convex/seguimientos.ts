@@ -75,6 +75,10 @@ export const marcarHecho = mutation({
   // `fechaHecho` la aporta el CLIENTE (su fecha local yyyy-mm-dd), no el runtime UTC.
   args: { id: v.id("seguimientos"), fechaHecho: v.string() },
   handler: async (ctx, { id, fechaHecho }) => {
+    // La mutation es pública en esta fase mock: validar el formato de la fecha local.
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaHecho)) {
+      throw new Error("fechaHecho debe tener formato yyyy-mm-dd");
+    }
     const seguimiento = await ctx.db.get(id);
     if (!seguimiento) throw new Error("El seguimiento ya no existe");
     // "Hoy global": cualquiera del equipo puede completar cualquier seguimiento.

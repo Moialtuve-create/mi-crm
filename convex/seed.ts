@@ -12,8 +12,10 @@ import type { Id } from "./_generated/dataModel";
  *   3. arg confirm === "SEED_DEV".
  * Borra únicamente las 5 tablas del MVP, nunca un wipe global.
  *
- * Ejecutar (inyecta tu fecha LOCAL con `date +%F` para que los grupos cuadren):
- *   npx convex run seed:run "{\"confirm\":\"SEED_DEV\",\"hoy\":\"$(date +%F)\"}"
+ * Ejecutar (inyecta tu fecha LOCAL para que los grupos Atrasado/Hoy/Próximo cuadren):
+ *   bash:        npx convex run seed:run "{\"confirm\":\"SEED_DEV\",\"hoy\":\"$(date +%F)\"}"
+ *   PowerShell:  $h = Get-Date -Format yyyy-MM-dd
+ *                npx convex run seed:run "{`"confirm`":`"SEED_DEV`",`"hoy`":`"$h`"}"
  */
 
 // Aritmética de calendario a prueba de zona horaria: parte de una fecha yyyy-mm-dd

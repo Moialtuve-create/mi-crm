@@ -36,6 +36,14 @@ npx convex run seed:run "{\"confirm\":\"SEED_DEV\",\"hoy\":\"$(date +%F)\"}"
 npm run dev               # http://localhost:3000  (abre en /hoy)
 ```
 
+En **PowerShell** (Windows), el seed del paso 2 es:
+
+```powershell
+npx convex env set SEED_ENABLED true
+$h = Get-Date -Format yyyy-MM-dd
+npx convex run seed:run "{`"confirm`":`"SEED_DEV`",`"hoy`":`"$h`"}"
+```
+
 > La app **necesita Convex** (las pantallas usan `useQuery`): si falta
 > `NEXT_PUBLIC_CONVEX_URL` se muestra un aviso en vez de arrancar.
 > El seed borra e inserta las tablas del MVP; el arg `hoy` es tu fecha **local**
