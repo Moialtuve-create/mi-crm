@@ -4,6 +4,7 @@ import "./globals.css";
 import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ToastProvider } from "@/components/ui/Toast";
+import { ClienteOverlayProvider } from "@/components/providers/ClienteOverlayProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -41,7 +42,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ConvexClientProvider>
           <SessionProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              <ClienteOverlayProvider>{children}</ClienteOverlayProvider>
+            </ToastProvider>
           </SessionProvider>
         </ConvexClientProvider>
       </body>

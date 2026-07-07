@@ -21,6 +21,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
+import { useClienteOverlay } from "@/components/providers/ClienteOverlayProvider";
 import { ESTADO_META } from "@/lib/estados";
 import {
   diasDesdeHoy,
@@ -35,6 +36,7 @@ type Seguimiento = FunctionReturnType<typeof api.seguimientos.listHoy>[number];
 // Pantalla inicial de la app tras el login (Linear MOI-40).
 export default function HoyPage() {
   const { showToast } = useToast();
+  const { abrirNuevo } = useClienteOverlay();
   const seguimientos = useQuery(api.seguimientos.listHoy);
 
   // Marcar hecho: optimista (quita el ítem al instante). Convex revierte solo si falla.
@@ -112,6 +114,7 @@ export default function HoyPage() {
 
       {/* Panel de acciones rápidas */}
       <AccionesRapidas
+        onNuevoCliente={abrirNuevo}
         onStub={(label) =>
           showToast({ mensaje: `${label}: disponible próximamente` })
         }
@@ -174,15 +177,23 @@ const TILES: { label: string; icon: LucideIcon; destacado?: boolean }[] = [
   { label: "Nuevo cliente", icon: UserPlus },
 ];
 
-function AccionesRapidas({ onStub }: { onStub: (label: string) => void }) {
+function AccionesRapidas({
+  onNuevoCliente,
+  onStub,
+}: {
+  onNuevoCliente: () => void;
+  onStub: (label: string) => void;
+}) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {TILES.map(({ label, icon: Icon, destacado }) => (
-        // TODO: cada tile abre su overlay real — Nueva tarea (MOI-39), Interacción
-        // (MOI-37), Venta (MOI-43), Nuevo cliente (MOI-34). Aquí queda como stub.
+        // "Nuevo cliente" abre el overlay real (MOI-34). Los otros 3 siguen como
+        // stub: Nueva tarea (MOI-39), Interacción (MOI-37), Venta (MOI-43).
         <button
           key={label}
-          onClick={() => onStub(label)}
+          onClick={() =>
+            label === "Nuevo cliente" ? onNuevoCliente() : onStub(label)
+          }
           className="focus-ring flex flex-col items-center justify-center gap-2 rounded-xl border border-line bg-surface p-4 text-center shadow-xs transition-colors hover:bg-surface-2"
         >
           <span
