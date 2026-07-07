@@ -6,9 +6,9 @@ import { ConvexProvider, ConvexReactClient } from "convex/react";
 /**
  * Proveedor de Convex para toda la app.
  *
- * Requiere NEXT_PUBLIC_CONVEX_URL (ver .env.example). Mientras no exista
- * (p. ej. antes de ejecutar `npx convex dev` por primera vez), la app
- * funciona sin backend para poder construir las pantallas con datos mock.
+ * Requiere NEXT_PUBLIC_CONVEX_URL (ver .env.example). La app depende de Convex
+ * (las pantallas usan useQuery), así que si falta la URL se muestra un aviso
+ * en vez de renderizar la app —que fallaría al suscribirse a las queries—.
  */
 export function ConvexClientProvider({ children }: { children: ReactNode }) {
   const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
@@ -21,11 +21,21 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
   if (!client) {
     if (typeof window !== "undefined") {
       console.warn(
-        "[Vibe CRM] NEXT_PUBLIC_CONVEX_URL no está definida: la app corre sin Convex. " +
-          "Ejecuta `npx convex dev` y copia la URL a .env.local.",
+        "[Vibe CRM] Falta NEXT_PUBLIC_CONVEX_URL. Ejecuta `npx convex dev` y copia la URL a .env.local.",
       );
     }
-    return <>{children}</>;
+    return (
+      <div className="flex min-h-dvh items-center justify-center p-6">
+        <div className="max-w-md rounded-xl border border-line bg-surface p-5 text-center shadow-xs">
+          <h1 className="text-lg font-semibold">Falta configurar Convex</h1>
+          <p className="mt-2 text-sm text-muted-fg">
+            Define <code>NEXT_PUBLIC_CONVEX_URL</code> en <code>.env.local</code>{" "}
+            (ejecuta <code>npx convex dev</code>). La app necesita el backend para
+            funcionar.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return <ConvexProvider client={client}>{children}</ConvexProvider>;

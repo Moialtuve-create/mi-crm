@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Artefactos ajenos al código de la app:
+    "design/**", // prototipo de diseño (support.js, _ds_bundle.js, .dc.html)
+    "convex/_generated/**", // código generado por Convex
   ]),
 ]);
 
