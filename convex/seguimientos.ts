@@ -71,6 +71,42 @@ export const listHoy = query({
   },
 });
 
+export const listByCliente = query({
+  // La ruta entrega el id como string; validamos con normalizeId (id inválido → []).
+  args: { clienteId: v.string() },
+  handler: async (ctx, { clienteId }) => {
+    const cid = ctx.db.normalizeId("clientes", clienteId);
+    if (!cid) return [];
+
+    const items = await ctx.db
+      .query("seguimientos")
+      .withIndex("by_cliente", (q) => q.eq("clienteId", cid))
+      .collect();
+
+    // Solo pendientes, ordenados por vencimiento asc (vence mantiene contrato yyyy-mm-dd).
+    const pendientes = items
+      .filter((s) => !s.hecho)
+      .sort((a, b) => a.vence.localeCompare(b.vence));
+
+    // Join responsables: deduplicar ids + Promise.all (patrón de listHoy).
+    const responsableIds = [...new Set(pendientes.map((s) => s.responsableId))];
+    const responsables = await Promise.all(
+      responsableIds.map((id) => ctx.db.get(id)),
+    );
+    const responsableMap = new Map(
+      responsables.flatMap((u) => (u ? [[u._id, u] as const] : [])),
+    );
+
+    // TODO(MOI-80): exigir ctx.auth (PII del cliente vía sus seguimientos).
+    return pendientes.map((s) => ({
+      _id: s._id,
+      accion: s.accion,
+      vence: s.vence,
+      responsableNombre: responsableMap.get(s.responsableId)?.nombre ?? "",
+    }));
+  },
+});
+
 export const marcarHecho = mutation({
   // `fechaHecho` la aporta el CLIENTE (su fecha local yyyy-mm-dd), no el runtime UTC.
   args: { id: v.id("seguimientos"), fechaHecho: v.string() },

@@ -83,6 +83,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const esPropietaria = usuario.rol === "propietaria";
   const items = NAV.filter((i) => !i.soloPropietaria || esPropietaria);
 
+  // La ficha de cliente es un "push" de detalle: en móvil oculta la tab bar (MOI-36).
+  // Único detalle hoy → basta con detectar /clientes/:id (no /clientes).
+  const esFicha = /^\/clientes\/[^/]+$/.test(pathname);
+
   return (
     <div className="min-h-dvh md:flex">
       {/* Sidebar (escritorio) */}
@@ -144,33 +148,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Link>
         </header>
 
-        <main className="mx-auto w-full max-w-[860px] flex-1 px-4 py-5 pb-24 md:pb-8">
+        <main
+          className={`mx-auto w-full max-w-[860px] flex-1 px-4 py-5 ${
+            esFicha ? "pb-8" : "pb-24 md:pb-8"
+          }`}
+        >
           {children}
         </main>
       </div>
 
-      {/* Tab bar (móvil) */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface md:hidden">
-        <ul className="mx-auto flex max-w-[860px]">
-          {items.map(({ href, label, icon: Icon }) => {
-            const activo = esActivo(pathname, href);
-            return (
-              <li key={href} className="flex-1">
-                <Link
-                  href={href}
-                  aria-current={activo ? "page" : undefined}
-                  className={`flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors ${
-                    activo ? "text-primary" : "text-subtle-fg"
-                  }`}
-                >
-                  <Icon size={22} strokeWidth={1.5} />
-                  {label}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
+      {/* Tab bar (móvil) — oculta en la ficha de detalle (push) */}
+      {!esFicha && (
+        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface md:hidden">
+          <ul className="mx-auto flex max-w-[860px]">
+            {items.map(({ href, label, icon: Icon }) => {
+              const activo = esActivo(pathname, href);
+              return (
+                <li key={href} className="flex-1">
+                  <Link
+                    href={href}
+                    aria-current={activo ? "page" : undefined}
+                    className={`flex min-h-14 flex-col items-center justify-center gap-1 py-2 text-[11px] font-medium transition-colors ${
+                      activo ? "text-primary" : "text-subtle-fg"
+                    }`}
+                  >
+                    <Icon size={22} strokeWidth={1.5} />
+                    {label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      )}
     </div>
   );
 }

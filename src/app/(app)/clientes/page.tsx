@@ -151,7 +151,7 @@ function ClienteRow({ c }: { c: Cliente }) {
   return (
     <li className="border-b border-line last:border-b-0">
       <Link
-        href={`/clientes/${c._id}`}
+        href={`/clientes/${c._id}?from=clientes`}
         className="focus-ring flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-surface-2"
       >
         <Avatar nombre={c.nombre} />
