@@ -268,7 +268,7 @@ function ItemSeguimiento({
       </button>
 
       <Link
-        href={`/clientes/${s.clienteId}`}
+        href={`/clientes/${s.clienteId}?from=hoy`}
         className="focus-ring flex min-w-0 flex-1 items-center gap-3 rounded-md"
       >
         <div className="min-w-0 flex-1">
