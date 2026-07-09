@@ -166,11 +166,30 @@ export const run = internalMutation({
       interacciones.map((i) => ctx.db.insert("interacciones", i)),
     );
 
+    // 6) Ventas y oportunidades: repartidas entre estados y clientes (para la sección
+    // Ventas y el historial de la ficha).
+    const ventas: Array<{
+      clienteId: Id<"clientes">;
+      concepto: string;
+      importe: number;
+      estado: "abierta" | "ganada" | "perdida";
+      fecha: string;
+      autorId: Id<"usuarios">;
+    }> = [
+      { clienteId: rosa, concepto: "Licencia anual Enterprise", importe: 21000, estado: "ganada", fecha: rel(-10), autorId: marta },
+      { clienteId: jorge, concepto: "Plan anual (opción B)", importe: 4800, estado: "abierta", fecha: rel(-2), autorId: carlos },
+      { clienteId: carmen, concepto: "Servicio de configuración inicial", importe: 1200, estado: "abierta", fecha: rel(-4), autorId: marta },
+      { clienteId: rosa, concepto: "Formación del equipo", importe: 1500, estado: "ganada", fecha: rel(-8), autorId: carlos },
+      { clienteId: diego, concepto: "Propuesta renovación", importe: 3600, estado: "perdida", fecha: rel(-20), autorId: carlos },
+    ];
+    await Promise.all(ventas.map((v) => ctx.db.insert("ventas", v)));
+
     return {
       usuarios: 2,
       clientes: 6,
       seguimientos: seguimientos.length,
       interacciones: interacciones.length,
+      ventas: ventas.length,
     };
   },
 });
