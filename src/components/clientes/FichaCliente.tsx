@@ -10,9 +10,11 @@ import {
   UserX,
   Phone,
   Mail,
+  MessageSquare,
   MessageSquarePlus,
   CalendarPlus,
   TrendingUp,
+  Users,
   Check,
   History,
   type LucideIcon,
@@ -28,6 +30,7 @@ import { useToast } from "@/components/ui/Toast";
 import { ESTADO_META } from "@/lib/estados";
 import { esAtrasado, fechaRelativa, hoyISO } from "@/lib/fecha";
 import { useClienteOverlay } from "@/components/providers/ClienteOverlayProvider";
+import { useInteraccionOverlay } from "@/components/providers/InteraccionOverlayProvider";
 
 /**
  * Ficha de cliente (MOI-36): nodo central de la app. Cabecera de datos, acciones
@@ -175,23 +178,14 @@ export function FichaCliente({ id, from }: { id: string; from?: string }) {
         </dl>
       </Card>
 
-      {/* Acciones rápidas (placeholders hasta sus fases) */}
-      <AccionesRapidas />
+      {/* Acciones rápidas: "Anotar interacción" real (MOI-37), resto placeholder */}
+      <AccionesRapidas clienteId={cliente._id} />
 
       {/* Seguimientos pendientes (datos reales) */}
       <SeguimientosPendientes clienteId={id} />
 
-      {/* Historial (Fase 2) */}
-      <Card>
-        <SeccionHeader titulo="Historial" />
-        <div className="px-4 py-2">
-          <EmptyState
-            icon={History}
-            titulo="Sin actividad todavía"
-            ayuda="Las interacciones, ventas y seguimientos completados aparecerán aquí."
-          />
-        </div>
-      </Card>
+      {/* Historial de interacciones (MOI-38, aquí solo interacciones) */}
+      <Historial clienteId={id} />
     </div>
   );
 }
@@ -230,23 +224,38 @@ function ContactoRow({
   );
 }
 
-const ACCIONES: { label: string; icon: LucideIcon }[] = [
-  { label: "Anotar interacción", icon: MessageSquarePlus },
-  { label: "Programar seguimiento", icon: CalendarPlus },
-  { label: "Registrar venta", icon: TrendingUp },
-];
-
-function AccionesRapidas() {
+function AccionesRapidas({ clienteId }: { clienteId: Id<"clientes"> }) {
   const { showToast } = useToast();
+  const { abrirInteraccion } = useInteraccionOverlay();
+
+  // "Anotar interacción" abre el overlay real (MOI-37). Los otros dos siguen como
+  // stub hasta MOI-39 (Programar seguimiento) / MOI-43 (Registrar venta).
+  const acciones: { label: string; icon: LucideIcon; onClick: () => void }[] = [
+    {
+      label: "Anotar interacción",
+      icon: MessageSquarePlus,
+      onClick: () => abrirInteraccion(clienteId),
+    },
+    {
+      label: "Programar seguimiento",
+      icon: CalendarPlus,
+      onClick: () =>
+        showToast({ mensaje: "Programar seguimiento: disponible próximamente" }),
+    },
+    {
+      label: "Registrar venta",
+      icon: TrendingUp,
+      onClick: () =>
+        showToast({ mensaje: "Registrar venta: disponible próximamente" }),
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-      {ACCIONES.map(({ label, icon: Icon }) => (
-        // Placeholders: los overlays llegan en MOI-37 (F2) / MOI-39 (F3) / MOI-43 (F4).
+      {acciones.map(({ label, icon: Icon, onClick }) => (
         <button
           key={label}
-          onClick={() =>
-            showToast({ mensaje: `${label}: disponible próximamente` })
-          }
+          onClick={onClick}
           className="focus-ring flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3.5 text-left shadow-xs transition-colors hover:bg-surface-2"
         >
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-primary">
@@ -256,6 +265,83 @@ function AccionesRapidas() {
         </button>
       ))}
     </div>
+  );
+}
+
+const CANAL_ICONO: Record<string, LucideIcon> = {
+  llamada: Phone,
+  email: Mail,
+  whatsapp: MessageSquare,
+  en_persona: Users,
+};
+const CANAL_INTERACCION_LABEL: Record<string, string> = {
+  llamada: "Llamada",
+  email: "Email",
+  whatsapp: "WhatsApp",
+  en_persona: "En persona",
+};
+
+type Interaccion = FunctionReturnType<
+  typeof api.interacciones.listByCliente
+>[number];
+
+// Historial de actividad (MOI-38). En esta entrega solo interacciones; ventas y
+// seguimientos completados se integran en sus fases.
+// TODO(MOI-38 · Fase 3/4): añadir ventas y seguimientos completados al historial.
+function Historial({ clienteId }: { clienteId: string }) {
+  const items = useQuery(api.interacciones.listByCliente, { clienteId });
+
+  return (
+    <Card>
+      <SeccionHeader titulo="Historial" contador={items?.length} />
+      {items === undefined ? (
+        <div className="space-y-2 p-4">
+          {[0, 1].map((i) => (
+            <div key={i} className="h-12 animate-pulse rounded bg-surface-2" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <div className="px-4 py-2">
+          <EmptyState
+            icon={History}
+            titulo="Sin actividad todavía"
+            ayuda="Las interacciones con este cliente aparecerán aquí."
+          />
+        </div>
+      ) : (
+        <ul className="divide-y divide-line">
+          {items.map((it) => (
+            <ItemHistorial key={it._id} it={it} />
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+function ItemHistorial({ it }: { it: Interaccion }) {
+  const Icono = CANAL_ICONO[it.tipo] ?? MessageSquare;
+  const canal = CANAL_INTERACCION_LABEL[it.tipo] ?? it.tipo;
+  return (
+    <li className="flex gap-3 px-4 py-3">
+      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-muted-fg">
+        <Icono size={16} strokeWidth={1.5} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="text-[13px] font-medium">{canal}</span>
+          <span className="shrink-0 text-[13px] text-subtle-fg">
+            {fechaRelativa(it.fecha)}
+          </span>
+        </div>
+        <p className="mt-0.5 whitespace-pre-wrap text-[14px] text-fg">
+          {it.texto}
+        </p>
+        <p className="mt-1 text-[13px] text-subtle-fg">
+          Registrado por {it.autorNombre || "Sin autor"}
+        </p>
+      </div>
+    </li>
   );
 }
 

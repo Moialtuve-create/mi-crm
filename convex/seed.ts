@@ -149,10 +149,28 @@ export const run = internalMutation({
       seguimientos.map((s) => ctx.db.insert("seguimientos", s)),
     );
 
+    // 5) Interacciones: historial de ejemplo para un par de clientes.
+    const interacciones: Array<{
+      clienteId: Id<"clientes">;
+      tipo: "llamada" | "email" | "whatsapp" | "en_persona";
+      texto: string;
+      fecha: string;
+      autorId: Id<"usuarios">;
+    }> = [
+      { clienteId: jorge, tipo: "llamada", texto: "Primer contacto: interesado en el plan anual. Pide propuesta por email.", fecha: rel(-9), autorId: carlos },
+      { clienteId: jorge, tipo: "email", texto: "Enviada la propuesta con dos opciones de precio.", fecha: rel(-5), autorId: carlos },
+      { clienteId: jorge, tipo: "whatsapp", texto: "Confirma que la revisa esta semana; le encaja la opción B.", fecha: rel(-2), autorId: carlos },
+      { clienteId: ana, tipo: "en_persona", texto: "Reunión en su estudio: necesita cerrar antes de fin de mes.", fecha: rel(-6), autorId: marta },
+    ];
+    await Promise.all(
+      interacciones.map((i) => ctx.db.insert("interacciones", i)),
+    );
+
     return {
       usuarios: 2,
       clientes: 6,
       seguimientos: seguimientos.length,
+      interacciones: interacciones.length,
     };
   },
 });
