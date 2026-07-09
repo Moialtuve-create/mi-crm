@@ -41,8 +41,12 @@ export function InteraccionFormOverlay({
   const { showToast } = useToast();
   const usuario = useCurrentUser();
 
-  // La lista solo hace falta en la variante "desde Hoy" (sin cliente fijo).
-  const clientes = useQuery(api.clientes.list, clienteId ? "skip" : {});
+  // La lista solo hace falta en la variante "desde Hoy" (sin cliente fijo) y con el
+  // overlay abierto: el provider es app-wide, así que evitamos cargarla siempre.
+  const clientes = useQuery(
+    api.clientes.list,
+    open && !clienteId ? {} : "skip",
+  );
 
   const registrar = useMutation(api.interacciones.crear).withOptimisticUpdate(
     (localStore, args) => {
