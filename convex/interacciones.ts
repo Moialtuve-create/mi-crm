@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { tipoInteraccion } from "./schema";
+import { esFechaISOReal } from "./lib/fecha";
 
 /**
  * Interacciones — anotar lo que pasó en una conversación (Linear MOI-37) y leer el
@@ -10,18 +11,6 @@ import { tipoInteraccion } from "./schema";
  * PII (texto de la conversación) en endpoints PÚBLICOS sin auth: aceptable SOLO en
  * esta fase local/mock. TODO(MOI-80): exigir ctx.auth (autor real + permisos).
  */
-
-/** yyyy-mm-dd que además es una fecha de calendario real (rechaza 2026-99-99, 2026-02-30). */
-function esFechaISOReal(fecha: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return false;
-  const [y, m, d] = fecha.split("-").map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d));
-  return (
-    dt.getUTCFullYear() === y &&
-    dt.getUTCMonth() === m - 1 &&
-    dt.getUTCDate() === d
-  );
-}
 
 export const crear = mutation({
   // El autor lo aporta el CLIENTE en esta fase mock (usuario en sesión); igual que la

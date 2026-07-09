@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { esFechaISOReal } from "./lib/fecha";
 
 /**
  * Seguimientos — pantalla "Tareas del día" (Linear MOI-40).
@@ -107,13 +108,44 @@ export const listByCliente = query({
   },
 });
 
+export const crear = mutation({
+  // `vence` la aporta el CLIENTE (su fecha local yyyy-mm-dd), no el runtime UTC.
+  args: {
+    clienteId: v.id("clientes"),
+    accion: v.string(),
+    vence: v.string(),
+    responsableId: v.id("usuarios"),
+  },
+  handler: async (ctx, { clienteId, accion, vence, responsableId }) => {
+    // TODO(MOI-80): el responsable real vendrá de ctx.auth; hoy lo aporta el cliente.
+    if (!esFechaISOReal(vence)) {
+      throw new Error("vence debe ser una fecha real en formato yyyy-mm-dd");
+    }
+    const accionTrim = accion.trim();
+    if (!accionTrim) throw new Error("La acción no puede estar vacía");
+
+    const cliente = await ctx.db.get(clienteId);
+    if (!cliente) throw new Error("El cliente ya no existe");
+    const responsable = await ctx.db.get(responsableId);
+    if (!responsable) throw new Error("El responsable no existe");
+
+    return await ctx.db.insert("seguimientos", {
+      clienteId,
+      accion: accionTrim,
+      vence,
+      hecho: false,
+      responsableId,
+    });
+  },
+});
+
 export const marcarHecho = mutation({
   // `fechaHecho` la aporta el CLIENTE (su fecha local yyyy-mm-dd), no el runtime UTC.
   args: { id: v.id("seguimientos"), fechaHecho: v.string() },
   handler: async (ctx, { id, fechaHecho }) => {
-    // La mutation es pública en esta fase mock: validar el formato de la fecha local.
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaHecho)) {
-      throw new Error("fechaHecho debe tener formato yyyy-mm-dd");
+    // La mutation es pública en esta fase mock: validar que es una fecha real.
+    if (!esFechaISOReal(fechaHecho)) {
+      throw new Error("fechaHecho debe ser una fecha real en formato yyyy-mm-dd");
     }
     const seguimiento = await ctx.db.get(id);
     if (!seguimiento) throw new Error("El seguimiento ya no existe");

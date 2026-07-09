@@ -31,6 +31,7 @@ import { ESTADO_META } from "@/lib/estados";
 import { esAtrasado, fechaRelativa, hoyISO } from "@/lib/fecha";
 import { useClienteOverlay } from "@/components/providers/ClienteOverlayProvider";
 import { useInteraccionOverlay } from "@/components/providers/InteraccionOverlayProvider";
+import { useSeguimientoOverlay } from "@/components/providers/SeguimientoOverlayProvider";
 
 /**
  * Ficha de cliente (MOI-36): nodo central de la app. Cabecera de datos, acciones
@@ -227,9 +228,10 @@ function ContactoRow({
 function AccionesRapidas({ clienteId }: { clienteId: Id<"clientes"> }) {
   const { showToast } = useToast();
   const { abrirInteraccion } = useInteraccionOverlay();
+  const { abrirSeguimiento } = useSeguimientoOverlay();
 
-  // "Anotar interacción" abre el overlay real (MOI-37). Los otros dos siguen como
-  // stub hasta MOI-39 (Programar seguimiento) / MOI-43 (Registrar venta).
+  // "Anotar interacción" (MOI-37) y "Programar seguimiento" (MOI-39) abren overlay
+  // real. Sigue como stub: Registrar venta (MOI-43).
   const acciones: { label: string; icon: LucideIcon; onClick: () => void }[] = [
     {
       label: "Anotar interacción",
@@ -239,8 +241,7 @@ function AccionesRapidas({ clienteId }: { clienteId: Id<"clientes"> }) {
     {
       label: "Programar seguimiento",
       icon: CalendarPlus,
-      onClick: () =>
-        showToast({ mensaje: "Programar seguimiento: disponible próximamente" }),
+      onClick: () => abrirSeguimiento(clienteId),
     },
     {
       label: "Registrar venta",

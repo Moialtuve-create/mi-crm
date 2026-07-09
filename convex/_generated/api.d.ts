@@ -10,6 +10,7 @@
 
 import type * as clientes from "../clientes.js";
 import type * as interacciones from "../interacciones.js";
+import type * as lib_fecha from "../lib/fecha.js";
 import type * as seed from "../seed.js";
 import type * as seguimientos from "../seguimientos.js";
 import type * as usuarios from "../usuarios.js";
@@ -23,6 +24,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   clientes: typeof clientes;
   interacciones: typeof interacciones;
+  "lib/fecha": typeof lib_fecha;
   seed: typeof seed;
   seguimientos: typeof seguimientos;
   usuarios: typeof usuarios;

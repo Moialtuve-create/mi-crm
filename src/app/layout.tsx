@@ -6,6 +6,7 @@ import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ClienteOverlayProvider } from "@/components/providers/ClienteOverlayProvider";
 import { InteraccionOverlayProvider } from "@/components/providers/InteraccionOverlayProvider";
+import { SeguimientoOverlayProvider } from "@/components/providers/SeguimientoOverlayProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -46,7 +47,9 @@ export default function RootLayout({
             <ToastProvider>
               <ClienteOverlayProvider>
                 <InteraccionOverlayProvider>
-                  {children}
+                  <SeguimientoOverlayProvider>
+                    {children}
+                  </SeguimientoOverlayProvider>
                 </InteraccionOverlayProvider>
               </ClienteOverlayProvider>
             </ToastProvider>

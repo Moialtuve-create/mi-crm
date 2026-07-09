@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { useClienteOverlay } from "@/components/providers/ClienteOverlayProvider";
 import { useInteraccionOverlay } from "@/components/providers/InteraccionOverlayProvider";
+import { useSeguimientoOverlay } from "@/components/providers/SeguimientoOverlayProvider";
 import { ESTADO_META } from "@/lib/estados";
 import {
   diasDesdeHoy,
@@ -39,6 +40,7 @@ export default function HoyPage() {
   const { showToast } = useToast();
   const { abrirNuevo } = useClienteOverlay();
   const { abrirInteraccion } = useInteraccionOverlay();
+  const { abrirSeguimiento } = useSeguimientoOverlay();
   const seguimientos = useQuery(api.seguimientos.listHoy);
 
   // Marcar hecho: optimista (quita el ítem al instante). Convex revierte solo si falla.
@@ -118,6 +120,7 @@ export default function HoyPage() {
       <AccionesRapidas
         onNuevoCliente={abrirNuevo}
         onAnotarInteraccion={() => abrirInteraccion()}
+        onNuevaTarea={() => abrirSeguimiento()}
         onStub={(label) =>
           showToast({ mensaje: `${label}: disponible próximamente` })
         }
@@ -133,12 +136,7 @@ export default function HoyPage() {
             titulo="No hay seguimientos para hoy"
             ayuda="Cuando programes seguimientos, aparecerán aquí ordenados por urgencia."
             cta={
-              <Button
-                variant="primary"
-                onClick={() =>
-                  showToast({ mensaje: "Nueva tarea: disponible próximamente" })
-                }
-              >
+              <Button variant="primary" onClick={() => abrirSeguimiento()}>
                 Nueva tarea
               </Button>
             }
@@ -183,17 +181,19 @@ const TILES: { label: string; icon: LucideIcon; destacado?: boolean }[] = [
 function AccionesRapidas({
   onNuevoCliente,
   onAnotarInteraccion,
+  onNuevaTarea,
   onStub,
 }: {
   onNuevoCliente: () => void;
   onAnotarInteraccion: () => void;
+  onNuevaTarea: () => void;
   onStub: (label: string) => void;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {TILES.map(({ label, icon: Icon, destacado }) => (
-        // "Nuevo cliente" (MOI-34) y "Anotar interacción" (MOI-37) abren overlay real.
-        // Siguen como stub: Nueva tarea (MOI-39), Registrar venta (MOI-43).
+        // "Nuevo cliente" (MOI-34), "Anotar interacción" (MOI-37) y "Nueva tarea"
+        // (MOI-39) abren overlay real. Sigue como stub: Registrar venta (MOI-43).
         <button
           key={label}
           onClick={() =>
@@ -201,7 +201,9 @@ function AccionesRapidas({
               ? onNuevoCliente()
               : label === "Anotar interacción"
                 ? onAnotarInteraccion()
-                : onStub(label)
+                : label === "Nueva tarea"
+                  ? onNuevaTarea()
+                  : onStub(label)
           }
           className="focus-ring flex flex-col items-center justify-center gap-2 rounded-xl border border-line bg-surface p-4 text-center shadow-xs transition-colors hover:bg-surface-2"
         >

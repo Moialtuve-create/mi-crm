@@ -8,6 +8,15 @@ import { v } from "convex/values";
  * el rol y el _id salen SIEMPRE de aquí para que no haya divergencia sesión↔datos.
  */
 
+/** Todos los usuarios, para el selector de Responsable (Linear MOI-39). */
+export const list = query({
+  args: {},
+  handler: async (ctx) => {
+    const usuarios = await ctx.db.query("usuarios").collect();
+    return usuarios.map((u) => ({ _id: u._id, nombre: u.nombre }));
+  },
+});
+
 export const getByEmail = query({
   args: { email: v.string() },
   handler: async (ctx, { email }) => {
