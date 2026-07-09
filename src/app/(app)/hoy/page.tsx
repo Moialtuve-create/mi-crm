@@ -24,6 +24,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useClienteOverlay } from "@/components/providers/ClienteOverlayProvider";
 import { useInteraccionOverlay } from "@/components/providers/InteraccionOverlayProvider";
 import { useSeguimientoOverlay } from "@/components/providers/SeguimientoOverlayProvider";
+import { useVentaOverlay } from "@/components/providers/VentaOverlayProvider";
 import { ESTADO_META } from "@/lib/estados";
 import {
   diasDesdeHoy,
@@ -41,6 +42,7 @@ export default function HoyPage() {
   const { abrirNuevo } = useClienteOverlay();
   const { abrirInteraccion } = useInteraccionOverlay();
   const { abrirSeguimiento } = useSeguimientoOverlay();
+  const { abrirVenta } = useVentaOverlay();
   const seguimientos = useQuery(api.seguimientos.listHoy);
 
   // Marcar hecho: optimista (quita el ítem al instante). Convex revierte solo si falla.
@@ -121,9 +123,7 @@ export default function HoyPage() {
         onNuevoCliente={abrirNuevo}
         onAnotarInteraccion={() => abrirInteraccion()}
         onNuevaTarea={() => abrirSeguimiento()}
-        onStub={(label) =>
-          showToast({ mensaje: `${label}: disponible próximamente` })
-        }
+        onRegistrarVenta={() => abrirVenta()}
       />
 
       {/* Secciones o estados */}
@@ -182,18 +182,18 @@ function AccionesRapidas({
   onNuevoCliente,
   onAnotarInteraccion,
   onNuevaTarea,
-  onStub,
+  onRegistrarVenta,
 }: {
   onNuevoCliente: () => void;
   onAnotarInteraccion: () => void;
   onNuevaTarea: () => void;
-  onStub: (label: string) => void;
+  onRegistrarVenta: () => void;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {TILES.map(({ label, icon: Icon, destacado }) => (
-        // "Nuevo cliente" (MOI-34), "Anotar interacción" (MOI-37) y "Nueva tarea"
-        // (MOI-39) abren overlay real. Sigue como stub: Registrar venta (MOI-43).
+        // Los cuatro tiles abren su overlay real: Nueva tarea (MOI-39), Anotar
+        // interacción (MOI-37), Registrar venta (MOI-43) y Nuevo cliente (MOI-34).
         <button
           key={label}
           onClick={() =>
@@ -203,7 +203,7 @@ function AccionesRapidas({
                 ? onAnotarInteraccion()
                 : label === "Nueva tarea"
                   ? onNuevaTarea()
-                  : onStub(label)
+                  : onRegistrarVenta()
           }
           className="focus-ring flex flex-col items-center justify-center gap-2 rounded-xl border border-line bg-surface p-4 text-center shadow-xs transition-colors hover:bg-surface-2"
         >

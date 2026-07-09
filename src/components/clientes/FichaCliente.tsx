@@ -29,14 +29,17 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { ESTADO_META } from "@/lib/estados";
 import { esAtrasado, fechaRelativa, hoyISO } from "@/lib/fecha";
+import { formatEuro, VENTA_ESTADO_META } from "@/lib/ventas";
 import { useClienteOverlay } from "@/components/providers/ClienteOverlayProvider";
 import { useInteraccionOverlay } from "@/components/providers/InteraccionOverlayProvider";
 import { useSeguimientoOverlay } from "@/components/providers/SeguimientoOverlayProvider";
+import { useVentaOverlay } from "@/components/providers/VentaOverlayProvider";
 
 /**
  * Ficha de cliente (MOI-36): nodo central de la app. Cabecera de datos, acciones
- * rápidas (placeholders hasta sus fases) y seguimientos pendientes con datos reales.
- * TODO(MOI-37/38 · Fase 2): historial de interacciones/ventas/seguimientos completados.
+ * rápidas (interacción/seguimiento/venta, todas reales), seguimientos pendientes e
+ * historial de interacciones + ventas.
+ * TODO(MOI-38 · Fase 3/4): añadir los seguimientos completados al historial.
  */
 
 const CANAL_LABEL: Record<string, string> = {
@@ -226,12 +229,12 @@ function ContactoRow({
 }
 
 function AccionesRapidas({ clienteId }: { clienteId: Id<"clientes"> }) {
-  const { showToast } = useToast();
   const { abrirInteraccion } = useInteraccionOverlay();
   const { abrirSeguimiento } = useSeguimientoOverlay();
+  const { abrirVenta } = useVentaOverlay();
 
-  // "Anotar interacción" (MOI-37) y "Programar seguimiento" (MOI-39) abren overlay
-  // real. Sigue como stub: Registrar venta (MOI-43).
+  // Las tres acciones abren su overlay real (MOI-37 / MOI-39 / MOI-43), con el cliente
+  // ya fijado por estar dentro de su ficha.
   const acciones: { label: string; icon: LucideIcon; onClick: () => void }[] = [
     {
       label: "Anotar interacción",
@@ -246,8 +249,7 @@ function AccionesRapidas({ clienteId }: { clienteId: Id<"clientes"> }) {
     {
       label: "Registrar venta",
       icon: TrendingUp,
-      onClick: () =>
-        showToast({ mensaje: "Registrar venta: disponible próximamente" }),
+      onClick: () => abrirVenta(clienteId),
     },
   ];
 
@@ -285,12 +287,25 @@ const CANAL_INTERACCION_LABEL: Record<string, string> = {
 type Interaccion = FunctionReturnType<
   typeof api.interacciones.listByCliente
 >[number];
+type Venta = FunctionReturnType<typeof api.ventas.listByCliente>[number];
 
-// Historial de actividad (MOI-38). En esta entrega solo interacciones; ventas y
-// seguimientos completados se integran en sus fases.
-// TODO(MOI-38 · Fase 3/4): añadir ventas y seguimientos completados al historial.
+type HistItem =
+  | ({ kind: "interaccion" } & Interaccion)
+  | ({ kind: "venta" } & Venta);
+
+// Historial de actividad (MOI-38). En esta entrega: interacciones + ventas.
+// TODO(MOI-38 · Fase 3/4): añadir también los seguimientos completados al historial.
 function Historial({ clienteId }: { clienteId: string }) {
-  const items = useQuery(api.interacciones.listByCliente, { clienteId });
+  const interacciones = useQuery(api.interacciones.listByCliente, { clienteId });
+  const ventas = useQuery(api.ventas.listByCliente, { clienteId });
+
+  const cargando = interacciones === undefined || ventas === undefined;
+  const items: HistItem[] | undefined = cargando
+    ? undefined
+    : [
+        ...interacciones.map((i) => ({ kind: "interaccion" as const, ...i })),
+        ...ventas.map((v) => ({ kind: "venta" as const, ...v })),
+      ].sort((a, b) => b.fecha.localeCompare(a.fecha));
 
   return (
     <Card>
@@ -306,21 +321,25 @@ function Historial({ clienteId }: { clienteId: string }) {
           <EmptyState
             icon={History}
             titulo="Sin actividad todavía"
-            ayuda="Las interacciones con este cliente aparecerán aquí."
+            ayuda="Las interacciones y ventas de este cliente aparecerán aquí."
           />
         </div>
       ) : (
         <ul className="divide-y divide-line">
-          {items.map((it) => (
-            <ItemHistorial key={it._id} it={it} />
-          ))}
+          {items.map((it) =>
+            it.kind === "interaccion" ? (
+              <ItemHistorialInteraccion key={`i-${it._id}`} it={it} />
+            ) : (
+              <ItemHistorialVenta key={`v-${it._id}`} it={it} />
+            ),
+          )}
         </ul>
       )}
     </Card>
   );
 }
 
-function ItemHistorial({ it }: { it: Interaccion }) {
+function ItemHistorialInteraccion({ it }: { it: Interaccion }) {
   const Icono = CANAL_ICONO[it.tipo] ?? MessageSquare;
   const canal = CANAL_INTERACCION_LABEL[it.tipo] ?? it.tipo;
   return (
@@ -338,6 +357,38 @@ function ItemHistorial({ it }: { it: Interaccion }) {
         <p className="mt-0.5 whitespace-pre-wrap text-[14px] text-fg">
           {it.texto}
         </p>
+        <p className="mt-1 text-[13px] text-subtle-fg">
+          Registrado por {it.autorNombre || "Sin autor"}
+        </p>
+      </div>
+    </li>
+  );
+}
+
+function ItemHistorialVenta({ it }: { it: Venta }) {
+  const meta = VENTA_ESTADO_META[it.estado];
+  return (
+    <li className="flex gap-3 px-4 py-3">
+      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-muted-fg">
+        <TrendingUp size={16} strokeWidth={1.5} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="min-w-0 truncate text-[14px] font-medium">
+            {it.concepto}
+          </span>
+          <span
+            className={`shrink-0 font-mono text-[14px] font-semibold tabular-nums ${meta.amtClass}`}
+          >
+            {formatEuro(it.importe)}
+          </span>
+        </div>
+        <div className="mt-1 flex items-center gap-2">
+          <Badge tono={meta.tono}>{meta.label}</Badge>
+          <span className="text-[13px] text-subtle-fg">
+            {fechaRelativa(it.fecha)}
+          </span>
+        </div>
         <p className="mt-1 text-[13px] text-subtle-fg">
           Registrado por {it.autorNombre || "Sin autor"}
         </p>
