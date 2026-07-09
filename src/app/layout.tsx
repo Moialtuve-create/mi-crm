@@ -5,6 +5,7 @@ import { ConvexClientProvider } from "@/components/providers/ConvexClientProvide
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ClienteOverlayProvider } from "@/components/providers/ClienteOverlayProvider";
+import { InteraccionOverlayProvider } from "@/components/providers/InteraccionOverlayProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -43,7 +44,11 @@ export default function RootLayout({
         <ConvexClientProvider>
           <SessionProvider>
             <ToastProvider>
-              <ClienteOverlayProvider>{children}</ClienteOverlayProvider>
+              <ClienteOverlayProvider>
+                <InteraccionOverlayProvider>
+                  {children}
+                </InteraccionOverlayProvider>
+              </ClienteOverlayProvider>
             </ToastProvider>
           </SessionProvider>
         </ConvexClientProvider>

@@ -22,6 +22,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { useToast } from "@/components/ui/Toast";
 import { useClienteOverlay } from "@/components/providers/ClienteOverlayProvider";
+import { useInteraccionOverlay } from "@/components/providers/InteraccionOverlayProvider";
 import { ESTADO_META } from "@/lib/estados";
 import {
   diasDesdeHoy,
@@ -37,6 +38,7 @@ type Seguimiento = FunctionReturnType<typeof api.seguimientos.listHoy>[number];
 export default function HoyPage() {
   const { showToast } = useToast();
   const { abrirNuevo } = useClienteOverlay();
+  const { abrirInteraccion } = useInteraccionOverlay();
   const seguimientos = useQuery(api.seguimientos.listHoy);
 
   // Marcar hecho: optimista (quita el ítem al instante). Convex revierte solo si falla.
@@ -115,6 +117,7 @@ export default function HoyPage() {
       {/* Panel de acciones rápidas */}
       <AccionesRapidas
         onNuevoCliente={abrirNuevo}
+        onAnotarInteraccion={() => abrirInteraccion()}
         onStub={(label) =>
           showToast({ mensaje: `${label}: disponible próximamente` })
         }
@@ -179,20 +182,26 @@ const TILES: { label: string; icon: LucideIcon; destacado?: boolean }[] = [
 
 function AccionesRapidas({
   onNuevoCliente,
+  onAnotarInteraccion,
   onStub,
 }: {
   onNuevoCliente: () => void;
+  onAnotarInteraccion: () => void;
   onStub: (label: string) => void;
 }) {
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {TILES.map(({ label, icon: Icon, destacado }) => (
-        // "Nuevo cliente" abre el overlay real (MOI-34). Los otros 3 siguen como
-        // stub: Nueva tarea (MOI-39), Interacción (MOI-37), Venta (MOI-43).
+        // "Nuevo cliente" (MOI-34) y "Anotar interacción" (MOI-37) abren overlay real.
+        // Siguen como stub: Nueva tarea (MOI-39), Registrar venta (MOI-43).
         <button
           key={label}
           onClick={() =>
-            label === "Nuevo cliente" ? onNuevoCliente() : onStub(label)
+            label === "Nuevo cliente"
+              ? onNuevoCliente()
+              : label === "Anotar interacción"
+                ? onAnotarInteraccion()
+                : onStub(label)
           }
           className="focus-ring flex flex-col items-center justify-center gap-2 rounded-xl border border-line bg-surface p-4 text-center shadow-xs transition-colors hover:bg-surface-2"
         >

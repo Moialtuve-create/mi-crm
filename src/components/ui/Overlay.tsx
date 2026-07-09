@@ -44,9 +44,11 @@ export function Overlay({
     const t = window.setTimeout(() => {
       const sheet = sheetRef.current;
       if (!sheet) return;
-      const primero = sheet.querySelector<HTMLElement>(
-        "input, textarea, select",
-      );
+      // El formulario puede marcar el campo a enfocar con [data-autofocus] (p. ej. la
+      // Nota, aunque Cliente/Fecha la precedan); si no, cae al primer campo.
+      const primero =
+        sheet.querySelector<HTMLElement>("[data-autofocus]") ??
+        sheet.querySelector<HTMLElement>("input, textarea, select");
       (primero ?? sheet).focus();
     }, 60);
 
