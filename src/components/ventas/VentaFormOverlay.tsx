@@ -204,7 +204,7 @@ export function VentaFormOverlay({
         />
 
         <Input
-          label="Importe (€)"
+          label="Importe (USD)"
           type="tel"
           inputMode="numeric"
           value={importe}

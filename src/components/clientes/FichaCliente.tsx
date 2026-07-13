@@ -29,7 +29,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { ESTADO_META } from "@/lib/estados";
 import { esAtrasado, fechaRelativa, hoyISO } from "@/lib/fecha";
-import { formatEuro, VENTA_ESTADO_META } from "@/lib/ventas";
+import { formatUSD, VENTA_ESTADO_META } from "@/lib/ventas";
 import { useClienteOverlay } from "@/components/providers/ClienteOverlayProvider";
 import { useInteraccionOverlay } from "@/components/providers/InteraccionOverlayProvider";
 import { useSeguimientoOverlay } from "@/components/providers/SeguimientoOverlayProvider";
@@ -380,7 +380,7 @@ function ItemHistorialVenta({ it }: { it: Venta }) {
           <span
             className={`shrink-0 font-mono text-[14px] font-semibold tabular-nums ${meta.amtClass}`}
           >
-            {formatEuro(it.importe)}
+            {formatUSD(it.importe)}
           </span>
         </div>
         <div className="mt-1 flex items-center gap-2">
