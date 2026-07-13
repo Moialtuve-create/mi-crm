@@ -77,7 +77,7 @@ export default defineSchema({
   ventas: defineTable({
     clienteId: v.id("clientes"),
     concepto: v.string(), // qué se vende (requerido)
-    importe: v.number(), // €, > 0
+    importe: v.number(), // USD, > 0
     estado: estadoVenta, // por defecto "abierta"
     fecha: v.string(), // ISO yyyy-mm-dd
     autorId: v.id("usuarios"),

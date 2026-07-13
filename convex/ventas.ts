@@ -37,7 +37,7 @@ export const crear = mutation({
     }
     const conceptoTrim = concepto.trim();
     if (!conceptoTrim) throw new Error("El concepto no puede estar vacío");
-    // Importe en euros enteros (coherente con el parseo del cliente y con formatEuro).
+    // Importe en dólares enteros (coherente con el parseo del cliente y con formatUSD).
     if (!Number.isInteger(importe) || importe <= 0) {
       throw new Error("El importe debe ser un entero mayor que 0");
     }

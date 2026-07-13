@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useVentaOverlay } from "@/components/providers/VentaOverlayProvider";
-import { formatEuro, VENTA_ESTADO_META, type EstadoVenta } from "@/lib/ventas";
+import { formatUSD, VENTA_ESTADO_META, type EstadoVenta } from "@/lib/ventas";
 
 type Venta = FunctionReturnType<typeof api.ventas.list>[number];
 type Filtro = "todas" | EstadoVenta;
@@ -84,7 +84,7 @@ export default function VentasPage() {
           <div className="grid grid-cols-2 gap-3">
             <Metrica
               titulo="En marcha"
-              valor={formatEuro(metricas.enMarcha)}
+              valor={formatUSD(metricas.enMarcha)}
               valorClass="text-info-fg"
               subtitulo={`${metricas.nAbierta} ${
                 metricas.nAbierta === 1 ? "oportunidad" : "oportunidades"
@@ -92,7 +92,7 @@ export default function VentasPage() {
             />
             <Metrica
               titulo="Ganado"
-              valor={formatEuro(metricas.ganado)}
+              valor={formatUSD(metricas.ganado)}
               valorClass="text-success-fg"
               subtitulo={`${metricas.nGanada} ${
                 metricas.nGanada === 1 ? "venta cerrada" : "ventas cerradas"
@@ -235,7 +235,7 @@ function FilaVenta({ v }: { v: Venta }) {
           <p
             className={`font-mono text-[15px] font-semibold tabular-nums ${meta.amtClass}`}
           >
-            {formatEuro(v.importe)}
+            {formatUSD(v.importe)}
           </p>
           <p className="text-[13px] text-subtle-fg">{fechaCorta(v.fecha)}</p>
         </div>
