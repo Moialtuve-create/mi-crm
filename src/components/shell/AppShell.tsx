@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   CalendarCheck,
   Users,
@@ -10,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useSession } from "@/components/providers/SessionProvider";
 import { Avatar } from "@/components/ui/Avatar";
 
 /**
@@ -35,6 +37,13 @@ function esActivo(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
+// Flag de hidratación (sin setState-en-efecto): `false` en SSR y en la primera pintura
+// de hidratación, `true` en cliente ya hidratado. Evita evaluar el guard con el snapshot
+// de SSR (email = null) y redirigir por error a un usuario logueado.
+const noopSubscribe = () => () => {};
+const getTrue = () => true;
+const getFalse = () => false;
+
 function Marca() {
   return (
     <span className="flex items-center gap-2.5">
@@ -48,34 +57,39 @@ function Marca() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { email, signOut } = useSession();
   const usuario = useCurrentUser();
 
-  // Cargando la identidad desde Convex.
-  if (usuario === undefined) {
+  const hidratado = useSyncExternalStore(noopSubscribe, getTrue, getFalse);
+
+  // Guard A — sin sesión → /login (protege TODAS las rutas de (app); MOI-80).
+  useEffect(() => {
+    if (hidratado && email == null) router.replace("/login");
+  }, [hidratado, email, router]);
+
+  // Guard B — sesión rancia: hay email pero no existe en Convex → fallar cerrado a /login.
+  useEffect(() => {
+    if (hidratado && email != null && usuario === null) {
+      signOut();
+      router.replace("/login");
+    }
+  }, [hidratado, email, usuario, signOut, router]);
+
+  // Redirigiendo (sin sesión / hidratando) o cargando la identidad: spinner neutro.
+  // Nunca se monta contenido protegido en estos estados.
+  if (
+    !hidratado ||
+    email == null ||
+    usuario === undefined ||
+    usuario === null
+  ) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
         <span
           className="h-6 w-6 animate-spin rounded-full border-[3px] border-surface-2 border-t-primary"
           aria-label="Cargando"
         />
-      </div>
-    );
-  }
-
-  // Email de sesión no encontrado en Convex (falta ejecutar el seed en dev).
-  if (usuario === null) {
-    return (
-      <div className="flex min-h-dvh items-center justify-center p-6">
-        <div className="max-w-md rounded-xl border border-line bg-surface p-5 text-center shadow-xs">
-          <h1 className="text-lg font-semibold">No hay datos todavía</h1>
-          <p className="mt-2 text-sm text-muted-fg">
-            El usuario de la sesión no existe en la base de datos. Ejecuta el seed
-            de desarrollo:
-          </p>
-          <code className="mt-3 block rounded-md bg-surface-2 px-3 py-2 text-[13px]">
-            npx convex run seed:run {'{"confirm":"SEED_DEV"}'}
-          </code>
-        </div>
       </div>
     );
   }
