@@ -7,7 +7,6 @@ import {
   type ReactNode,
 } from "react";
 import {
-  DEFAULT_EMAIL,
   getEmailServerSnapshot,
   getEmailSnapshot,
   signInEmail,
@@ -19,12 +18,12 @@ import {
  * Sesión de la app (Linear MOI-33 / MOI-80).
  *
  * Guarda solo el email del usuario activo (external store en localStorage); el
- * rol/_id autoritativos se resuelven en Convex con `useCurrentUser()`. Sin login
- * real todavía (MOI-80), si no hay sesión se usa el usuario por defecto.
+ * rol/_id autoritativos se resuelven en Convex con `useCurrentUser()`. Si no hay
+ * sesión, `email` es `null` y el guard de `<AppShell>` redirige a `/login` (MOI-80).
  */
 
 interface SessionContextValue {
-  email: string;
+  email: string | null;
   signIn: (email: string) => void;
   signOut: () => void;
 }
@@ -32,12 +31,11 @@ interface SessionContextValue {
 const SessionContext = createContext<SessionContextValue | null>(null);
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const stored = useSyncExternalStore(
+  const email = useSyncExternalStore(
     subscribeSesion,
     getEmailSnapshot,
     getEmailServerSnapshot,
   );
-  const email = stored ?? DEFAULT_EMAIL;
 
   return (
     <SessionContext.Provider
