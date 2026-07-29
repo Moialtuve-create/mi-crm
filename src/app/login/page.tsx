@@ -82,18 +82,39 @@ export default function LoginPage() {
   // Canal de rechazo tras el redirect completo de Google: solo se interpreta como error si
   // realmente veníamos de pulsar "Continuar con Google" (evita falsos banners en cargas
   // normales) y espera a que Convex Auth termine de resolver (isLoading), no un timeout.
-  // Se resuelve en el propio render (no en un efecto) con un ref que garantiza que solo se
-  // decide una vez por intento — patrón de React para "ajustar estado según algo que cambió",
-  // igual que ya usa AppShell con `hidratado` para no romper la hidratación de servidor.
+  //
+  // `createOrUpdateUser` (convex/auth.ts) YA valida contra `usuarios` antes de crear la
+  // sesión: si `isAuthenticated` llega a ser `true`, la cuenta ESTÁ provisionada por
+  // definición. Por eso, mientras `isAuthenticated` es `true`, un `autenticado === null`
+  // de `getUsuarioAutenticado` solo puede ser transitorio (la suscripción de la query
+  // todavía no se reactualizó con el token nuevo) — nunca un rechazo real. Tratarlo como
+  // "aún resolviendo" (igual que `undefined`) evita el falso rechazo. Como red de
+  // seguridad ante un caso verdaderamente anómalo, un margen (timer) fuerza una decisión
+  // final si nunca llega a resolver.
   const hidratado = useSyncExternalStore(noopSubscribe, getTrue, getFalse);
   const [googleResuelto, setGoogleResuelto] = useState(false);
-  const googleAunResolviendo = authLoading || (isAuthenticated && autenticado === undefined);
+  const [margenAgotado, setMargenAgotado] = useState(false);
+  const autenticadoAunTransitorio =
+    isAuthenticated && (autenticado === undefined || (autenticado === null && !margenAgotado));
+  const googleAunResolviendo = authLoading || autenticadoAunTransitorio;
+
+  useEffect(() => {
+    if (!(isAuthenticated && autenticado === null && !margenAgotado)) return;
+    const t = setTimeout(() => setMargenAgotado(true), 4000);
+    return () => clearTimeout(t);
+  }, [isAuthenticated, autenticado, margenAgotado]);
+
   if (hidratado && !googleResuelto && !googleAunResolviendo) {
     const habiaIntento = window.sessionStorage.getItem(MARCA_GOOGLE_INTENTADO);
     if (habiaIntento) {
       window.sessionStorage.removeItem(MARCA_GOOGLE_INTENTADO);
-      if (!isAuthenticated || autenticado === null) {
+      if (!isAuthenticated) {
         setError("Esta cuenta de Google no está autorizada. Contacta con la Dueña.");
+        setGoogleSubmitting(false);
+      } else if (autenticado === null) {
+        // isAuthenticated=true pero la identidad de negocio nunca llegó a resolver
+        // (caso anómalo, no un rechazo — ver comentario de arriba).
+        setError("No se pudo completar el acceso con Google. Inténtalo de nuevo.");
         setGoogleSubmitting(false);
       }
     }
