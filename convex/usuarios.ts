@@ -25,6 +25,32 @@ export const getByEmail = query({
       .withIndex("by_email", (q) => q.eq("email", email))
       .unique();
     if (!usuario) return null;
-    return { _id: usuario._id, nombre: usuario.nombre, rol: usuario.rol };
+    return {
+      _id: usuario._id,
+      nombre: usuario.nombre,
+      rol: usuario.rol,
+      soloGoogle: usuario.soloGoogle ?? false,
+    };
+  },
+});
+
+/**
+ * Identidad de negocio verificada en SERVIDOR (Linear MOI-114): a diferencia de
+ * `getByEmail`, no recibe el email del cliente — lo obtiene del JWT que Convex Auth
+ * validó tras el login con Google (`ctx.auth.getUserIdentity()`). No es falsificable
+ * escribiendo en localStorage; la usa el guard de cuentas `soloGoogle` en AppShell.
+ */
+export const getUsuarioAutenticado = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity?.email) return null;
+    const usuario = await ctx.db
+      .query("usuarios")
+      .withIndex("by_email", (q) => q.eq("email", identity.email as string))
+      .unique();
+    return usuario
+      ? { _id: usuario._id, nombre: usuario.nombre, rol: usuario.rol, email: usuario.email }
+      : null;
   },
 });

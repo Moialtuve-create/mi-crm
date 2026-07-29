@@ -1,10 +1,13 @@
 "use client";
 
 import { ReactNode, useMemo } from "react";
-import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { ConvexReactClient } from "convex/react";
+import { ConvexAuthProvider } from "@convex-dev/auth/react";
 
 /**
- * Proveedor de Convex para toda la app.
+ * Proveedor de Convex para toda la app. Usa `ConvexAuthProvider` (Linear MOI-114) en vez
+ * de `ConvexProvider` para soportar "Continuar con Google" — envuelve el mismo cliente,
+ * así que `useQuery`/`useMutation`/`useConvex()` siguen funcionando igual en toda la app.
  *
  * Requiere NEXT_PUBLIC_CONVEX_URL (ver .env.example). La app depende de Convex
  * (las pantallas usan useQuery), así que si falta la URL se muestra un aviso
@@ -38,5 +41,5 @@ export function ConvexClientProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  return <ConvexProvider client={client}>{children}</ConvexProvider>;
+  return <ConvexAuthProvider client={client}>{children}</ConvexAuthProvider>;
 }

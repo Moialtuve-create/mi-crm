@@ -1,4 +1,5 @@
 import { defineSchema, defineTable } from "convex/server";
+import { authTables } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 
 /**
@@ -41,6 +42,8 @@ export const rolUsuario = v.union(
 );
 
 export default defineSchema({
+  ...authTables,
+
   clientes: defineTable({
     nombre: v.string(), // obligatorio
     empresa: v.optional(v.string()),
@@ -91,5 +94,8 @@ export default defineSchema({
     rol: rolUsuario,
     // Credenciales: gestionadas por el proveedor de auth (punto de integración,
     // ver src/lib/auth.ts y Linear MOI-80 / MOI-55). No guardar contraseñas en claro.
+    // MOI-114 — acceso con Google (Convex Auth):
+    soloGoogle: v.optional(v.boolean()), // true: el login por contraseña rechaza esta cuenta
+    authUserId: v.optional(v.id("users")), // enlace hacia authTables.users tras el primer login con Google
   }).index("by_email", ["email"]),
 });

@@ -8,7 +8,9 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
 import type * as clientes from "../clientes.js";
+import type * as http from "../http.js";
 import type * as interacciones from "../interacciones.js";
 import type * as lib_fecha from "../lib/fecha.js";
 import type * as seed from "../seed.js";
@@ -23,7 +25,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
   clientes: typeof clientes;
+  http: typeof http;
   interacciones: typeof interacciones;
   "lib/fecha": typeof lib_fecha;
   seed: typeof seed;
