@@ -3,6 +3,8 @@
 import { useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useQuery } from "convex/react";
+import { useAuthActions } from "@convex-dev/auth/react";
 import {
   CalendarCheck,
   Users,
@@ -13,6 +15,7 @@ import {
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useSession } from "@/components/providers/SessionProvider";
 import { Avatar } from "@/components/ui/Avatar";
+import { api } from "../../../convex/_generated/api";
 
 /**
  * Shell de navegación (Linear MOI-33): tab bar inferior en móvil, sidebar 240px en
@@ -59,9 +62,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { email, signOut } = useSession();
+  const { signOut: signOutGoogle } = useAuthActions();
   const usuario = useCurrentUser();
 
   const hidratado = useSyncExternalStore(noopSubscribe, getTrue, getFalse);
+
+  // Cuentas soloGoogle (MOI-114): el email de localStorage no basta, se exige además una
+  // identidad verificada en servidor por Convex Auth (ver convex/usuarios.ts).
+  const requiereGoogle = usuario?.soloGoogle === true;
+  const autenticado = useQuery(
+    api.usuarios.getUsuarioAutenticado,
+    requiereGoogle ? {} : "skip",
+  );
+  const autenticadoOk =
+    !requiereGoogle ||
+    (autenticado !== undefined &&
+      autenticado !== null &&
+      usuario != null &&
+      autenticado._id === usuario._id);
 
   // Guard A — sin sesión → /login (protege TODAS las rutas de (app); MOI-80).
   useEffect(() => {
@@ -72,9 +90,31 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (hidratado && email != null && usuario === null) {
       signOut();
+      void signOutGoogle();
       router.replace("/login");
     }
-  }, [hidratado, email, usuario, signOut, router]);
+  }, [hidratado, email, usuario, signOut, signOutGoogle, router]);
+
+  // Guard C (MOI-114) — cuentas soloGoogle sin identidad de Convex Auth verificada (p. ej.
+  // alguien escribió el email a mano en localStorage): fallar cerrado a /login.
+  useEffect(() => {
+    if (!hidratado || email == null || !requiereGoogle) return;
+    if (autenticado === undefined) return; // aún cargando, no rechazar todavía
+    if (!autenticadoOk) {
+      signOut();
+      void signOutGoogle();
+      router.replace("/login");
+    }
+  }, [
+    hidratado,
+    email,
+    requiereGoogle,
+    autenticado,
+    autenticadoOk,
+    signOut,
+    signOutGoogle,
+    router,
+  ]);
 
   // Redirigiendo (sin sesión / hidratando) o cargando la identidad: spinner neutro.
   // Nunca se monta contenido protegido en estos estados.
@@ -82,7 +122,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     !hidratado ||
     email == null ||
     usuario === undefined ||
-    usuario === null
+    usuario === null ||
+    (requiereGoogle && (autenticado === undefined || !autenticadoOk))
   ) {
     return (
       <div className="flex min-h-dvh items-center justify-center">

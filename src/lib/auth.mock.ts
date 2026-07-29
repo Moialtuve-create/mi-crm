@@ -94,10 +94,15 @@ export function createMockAuth(convex: ConvexReactClient): AuthProvider {
   return {
     async signIn(email, password) {
       const normalizado = normalizaEmail(email);
-      const sesion = password ? await resolverSesion(normalizado) : null;
-      if (!sesion) throw new Error("Credenciales inválidas");
+      if (!password) throw new Error("Credenciales inválidas");
+      const usuario = await convex.query(api.usuarios.getByEmail, { email: normalizado });
+      if (!usuario) throw new Error("Credenciales inválidas");
+      // MOI-114: cuentas soloGoogle no pueden entrar por contraseña, aunque el email exista.
+      if (usuario.soloGoogle) throw new Error("Esta cuenta debe entrar con Google");
       signInEmail(normalizado);
-      return sesion;
+      return {
+        user: { id: usuario._id, nombre: usuario.nombre, email: normalizado, rol: usuario.rol },
+      };
     },
     async signOut() {
       signOutEmail();
