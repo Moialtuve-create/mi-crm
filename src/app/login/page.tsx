@@ -129,7 +129,13 @@ export default function LoginPage() {
     try {
       // Dispara un redirect de página completa a Google; el código de después de este
       // await normalmente no llega a ejecutarse salvo que falle antes de redirigir.
-      await signInGoogle("google");
+      // redirectTo: "/login" — sin esto, Convex Auth vuelve a SITE_URL raíz ("/"), y
+      // `src/app/page.tsx` hace `redirect("/hoy")` en el servidor SIN conservar el
+      // `?code=` que trae el resultado del login: el intercambio nunca se completa y
+      // la app queda "no autenticada" aunque Google y createOrUpdateUser ya validaron
+      // todo correctamente. /login no tiene redirect de servidor, así que el `code`
+      // sobrevive para que ConvexAuthProvider lo procese.
+      await signInGoogle("google", { redirectTo: "/login" });
     } catch {
       window.sessionStorage.removeItem(MARCA_GOOGLE_INTENTADO);
       setError("No se pudo iniciar el acceso con Google. Inténtalo de nuevo.");
