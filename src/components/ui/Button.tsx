@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "danger";
 
 const VARIANTE: Record<Variant, string> = {
   primary:
@@ -8,6 +8,7 @@ const VARIANTE: Record<Variant, string> = {
   secondary:
     "bg-surface border border-line-strong text-fg font-medium hover:bg-surface-2",
   ghost: "text-muted-fg font-medium hover:bg-surface-2",
+  danger: "bg-error text-white font-semibold hover:opacity-90 active:opacity-80",
 };
 
 /** Botón del design system (48px, radio 6px, anillo de foco verde). */
