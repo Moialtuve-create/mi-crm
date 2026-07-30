@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
@@ -10,11 +10,14 @@ import {
   Users,
   TrendingUp,
   Shield,
+  LogOut,
   type LucideIcon,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useSession } from "@/components/providers/SessionProvider";
 import { Avatar } from "@/components/ui/Avatar";
+import { Overlay } from "@/components/ui/Overlay";
+import { Button } from "@/components/ui/Button";
 import { api } from "../../../convex/_generated/api";
 
 /**
@@ -64,6 +67,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { email, signOut } = useSession();
   const { signOut: signOutGoogle } = useAuthActions();
   const usuario = useCurrentUser();
+  const [confirmandoSalida, setConfirmandoSalida] = useState(false);
+
+  // Cierra AMBAS sesiones (mock local + Convex Auth/Google si la hubiera) y vuelve
+  // al login — mismo patrón que ya usan los guards B y C más abajo.
+  async function cerrarSesion() {
+    signOut();
+    await signOutGoogle();
+    router.replace("/login");
+  }
 
   const hidratado = useSyncExternalStore(noopSubscribe, getTrue, getFalse);
 
@@ -172,11 +184,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             })}
           </ul>
         </nav>
-        <div className="border-t border-line p-3">
+        <div className="flex items-center gap-1 border-t border-line p-3">
           <Link
             href="/cuenta"
             aria-current={esActivo(pathname, "/cuenta") ? "page" : undefined}
-            className={`flex items-center gap-3 rounded-md px-2 py-2 transition-colors ${
+            className={`flex min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-2 transition-colors ${
               esActivo(pathname, "/cuenta")
                 ? "bg-primary-subtle"
                 : "hover:bg-surface-2"
@@ -190,6 +202,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <span className="block text-[12px] text-subtle-fg">Mi cuenta</span>
             </span>
           </Link>
+          <button
+            type="button"
+            onClick={() => setConfirmandoSalida(true)}
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+            className="focus-ring flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-subtle-fg hover:bg-surface-2 hover:text-fg"
+          >
+            <LogOut size={18} strokeWidth={1.5} />
+          </button>
         </div>
       </aside>
 
@@ -198,9 +219,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Top bar (móvil) */}
         <header className="flex h-14 items-center justify-between border-b border-line bg-surface px-4 md:hidden">
           <Marca />
-          <Link href="/cuenta" aria-label="Mi cuenta">
-            <Avatar nombre={usuario.nombre} size={32} />
-          </Link>
+          <div className="flex items-center gap-1">
+            <Link href="/cuenta" aria-label="Mi cuenta">
+              <Avatar nombre={usuario.nombre} size={32} />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setConfirmandoSalida(true)}
+              aria-label="Cerrar sesión"
+              title="Cerrar sesión"
+              className="focus-ring flex h-9 w-9 items-center justify-center rounded-md text-subtle-fg hover:bg-surface-2 hover:text-fg"
+            >
+              <LogOut size={18} strokeWidth={1.5} />
+            </button>
+          </div>
         </header>
 
         <main
@@ -236,6 +268,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </ul>
         </nav>
       )}
+
+      <Overlay
+        open={confirmandoSalida}
+        onClose={() => setConfirmandoSalida(false)}
+        titulo="Cerrar sesión"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              className="flex-1"
+              onClick={() => setConfirmandoSalida(false)}
+            >
+              Cancelar
+            </Button>
+            <Button variant="danger" className="flex-1" onClick={cerrarSesion}>
+              Cerrar sesión
+            </Button>
+          </>
+        }
+      >
+        <p className="text-[14px] text-muted-fg">
+          ¿Seguro que quieres cerrar sesión? Tendrás que volver a entrar para acceder al CRM.
+        </p>
+      </Overlay>
     </div>
   );
 }
