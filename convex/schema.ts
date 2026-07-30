@@ -97,5 +97,9 @@ export default defineSchema({
     // MOI-114 — acceso con Google (Convex Auth):
     soloGoogle: v.optional(v.boolean()), // true: el login por contraseña rechaza esta cuenta
     authUserId: v.optional(v.id("users")), // enlace hacia authTables.users tras el primer login con Google
-  }).index("by_email", ["email"]),
+  })
+    .index("by_email", ["email"])
+    // by_authUserId: el JWT de Convex Auth no trae claim `email` (solo `sub`), así que la
+    // identidad autenticada se resuelve por este vínculo. Ver usuarios.getUsuarioAutenticado.
+    .index("by_authUserId", ["authUserId"]),
 });
