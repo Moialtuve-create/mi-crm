@@ -1,3 +1,4 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -36,18 +37,25 @@ export const getByEmail = query({
 
 /**
  * Identidad de negocio verificada en SERVIDOR (Linear MOI-114): a diferencia de
- * `getByEmail`, no recibe el email del cliente — lo obtiene del JWT que Convex Auth
- * validó tras el login con Google (`ctx.auth.getUserIdentity()`). No es falsificable
- * escribiendo en localStorage; la usa el guard de cuentas `soloGoogle` en AppShell.
+ * `getByEmail`, no recibe nada del cliente — resuelve el usuario desde el JWT que
+ * Convex Auth validó tras el login con Google. No es falsificable escribiendo en
+ * localStorage; la usa el guard de cuentas `soloGoogle` en AppShell.
+ *
+ * Se resuelve por `authUserId`, NO por email: el JWT de Convex Auth solo lleva los
+ * claims `sub` (`"<userId>|<sessionId>"`), `iss`, `aud`, `iat` y `exp` — no incluye
+ * `email` (ver node_modules/@convex-dev/auth/.../implementation/tokens.js). Buscar por
+ * `identity.email` devolvía siempre `null`. `getAuthUserId()` extrae el `Id<"users">`
+ * del `sub`, y `usuarios.authUserId` es el vínculo que planta `createOrUpdateUser`
+ * (convex/auth.ts) al validar que la cuenta está provisionada.
  */
 export const getUsuarioAutenticado = query({
   args: {},
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity?.email) return null;
+    const authUserId = await getAuthUserId(ctx);
+    if (authUserId === null) return null;
     const usuario = await ctx.db
       .query("usuarios")
-      .withIndex("by_email", (q) => q.eq("email", identity.email as string))
+      .withIndex("by_authUserId", (q) => q.eq("authUserId", authUserId))
       .unique();
     return usuario
       ? { _id: usuario._id, nombre: usuario.nombre, rol: usuario.rol, email: usuario.email }
