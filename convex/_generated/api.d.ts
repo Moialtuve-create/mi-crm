@@ -13,6 +13,7 @@ import type * as clientes from "../clientes.js";
 import type * as http from "../http.js";
 import type * as interacciones from "../interacciones.js";
 import type * as lib_fecha from "../lib/fecha.js";
+import type * as passwordReset from "../passwordReset.js";
 import type * as seed from "../seed.js";
 import type * as seguimientos from "../seguimientos.js";
 import type * as usuarios from "../usuarios.js";
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   interacciones: typeof interacciones;
   "lib/fecha": typeof lib_fecha;
+  passwordReset: typeof passwordReset;
   seed: typeof seed;
   seguimientos: typeof seguimientos;
   usuarios: typeof usuarios;

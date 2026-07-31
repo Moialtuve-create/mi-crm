@@ -2,18 +2,17 @@
 
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { useSession } from "@/components/providers/SessionProvider";
 
 /**
- * Identidad autoritativa del usuario actual, resuelta en Convex por email.
+ * Identidad autoritativa del usuario actual, resuelta en Convex desde la sesión de
+ * Convex Auth (MOI-115) — no falsificable escribiendo en localStorage.
  * Se usa para el gating de rol del shell (mostrar "Equipo" solo a la Dueña).
  *
  * Devuelve:
- *   - `undefined` → cargando (o sin email de sesión todavía)
- *   - `null`      → el email no existe en Convex (p. ej. falta ejecutar el seed)
- *   - objeto      → `{ _id, nombre, rol }`
+ *   - `undefined` → cargando
+ *   - `null`      → sin sesión, o la cuenta no está provisionada en `usuarios`
+ *   - objeto      → `{ _id, nombre, rol, email }`
  */
 export function useCurrentUser() {
-  const { email } = useSession();
-  return useQuery(api.usuarios.getByEmail, email ? { email } : "skip");
+  return useQuery(api.usuarios.getUsuarioAutenticado);
 }

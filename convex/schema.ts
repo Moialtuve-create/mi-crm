@@ -92,14 +92,24 @@ export default defineSchema({
     nombre: v.string(),
     email: v.string(),
     rol: rolUsuario,
-    // Credenciales: gestionadas por el proveedor de auth (punto de integración,
-    // ver src/lib/auth.ts y Linear MOI-80 / MOI-55). No guardar contraseñas en claro.
-    // MOI-114 — acceso con Google (Convex Auth):
-    soloGoogle: v.optional(v.boolean()), // true: el login por contraseña rechaza esta cuenta
-    authUserId: v.optional(v.id("users")), // enlace hacia authTables.users tras el primer login con Google
+    // Credenciales: gestionadas por Convex Auth (provider Password, hash en
+    // authAccounts.secret). No guardar contraseñas en claro ni hasheadas aquí.
+    // MOI-114 — acceso con Google (Convex Auth). MOI-115: soloGoogle ya NO bloquea el
+    // login por contraseña (decisión del owner); se conserva como dato informativo.
+    soloGoogle: v.optional(v.boolean()),
+    authUserId: v.optional(v.id("users")), // enlace hacia authTables.users
   })
     .index("by_email", ["email"])
     // by_authUserId: el JWT de Convex Auth no trae claim `email` (solo `sub`), así que la
     // identidad autenticada se resuelve por este vínculo. Ver usuarios.getUsuarioAutenticado.
     .index("by_authUserId", ["authUserId"]),
+
+  // MOI-115: throttle propio de la recuperación de contraseña. La librería NO limita la
+  // emisión de códigos (solo la verificación, vía authRateLimits) — ver convex/passwordReset.ts.
+  authThrottle: defineTable({
+    clave: v.string(), // "envio:<email>" | "intento:<email>"
+    ventanaInicio: v.number(),
+    contador: v.number(),
+    ultimo: v.number(),
+  }).index("by_clave", ["clave"]),
 });

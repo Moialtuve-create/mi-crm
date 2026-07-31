@@ -1,37 +1,21 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import { query } from "./_generated/server";
-import { v } from "convex/values";
 
 /**
- * Usuarios — Linear MOI-33 (gating de rol del shell).
+ * Usuarios — Linear MOI-33 (gating de rol del shell) + MOI-115 (sesión real).
  *
- * Identidad autoritativa: la sesión mock (src/lib/auth.mock.ts) solo guarda el email;
- * el rol y el _id salen SIEMPRE de aquí para que no haya divergencia sesión↔datos.
+ * Identidad autoritativa: `getUsuarioAutenticado`, resuelta en servidor desde la sesión
+ * de Convex Auth. `getByEmail` se borró en MOI-115: era pública y sin authz, y era lo
+ * que hacía falsificable la sesión escribiendo en localStorage.
  */
 
-/** Todos los usuarios, para el selector de Responsable (Linear MOI-39). */
+/** Todos los usuarios, para el selector de Responsable (Linear MOI-39). Requiere sesión. */
 export const list = query({
   args: {},
   handler: async (ctx) => {
+    if ((await getAuthUserId(ctx)) === null) return [];
     const usuarios = await ctx.db.query("usuarios").collect();
     return usuarios.map((u) => ({ _id: u._id, nombre: u.nombre }));
-  },
-});
-
-export const getByEmail = query({
-  args: { email: v.string() },
-  handler: async (ctx, { email }) => {
-    const usuario = await ctx.db
-      .query("usuarios")
-      .withIndex("by_email", (q) => q.eq("email", email))
-      .unique();
-    if (!usuario) return null;
-    return {
-      _id: usuario._id,
-      nombre: usuario.nombre,
-      rol: usuario.rol,
-      soloGoogle: usuario.soloGoogle ?? false,
-    };
   },
 });
 

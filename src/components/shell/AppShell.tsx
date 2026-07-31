@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useQuery } from "convex/react";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useAuthActions, useConvexAuth } from "@convex-dev/auth/react";
 import {
   CalendarCheck,
   Users,
@@ -14,15 +13,18 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
-import { useSession } from "@/components/providers/SessionProvider";
 import { Avatar } from "@/components/ui/Avatar";
 import { Overlay } from "@/components/ui/Overlay";
 import { Button } from "@/components/ui/Button";
-import { api } from "../../../convex/_generated/api";
 
 /**
  * Shell de navegación (Linear MOI-33): tab bar inferior en móvil, sidebar 240px en
  * escritorio. "Equipo" solo para la Dueña. Aterrizaje en /hoy tras la sesión.
+ *
+ * MOI-115: la sesión es la de Convex Auth (JWT verificado en servidor), no un email en
+ * localStorage. `useConvexAuth().isLoading` ya cubre la rehidratación del refresh token
+ * en el primer render, así que no hace falta el flag de hidratación que tenía el guard
+ * anterior (era para no leer localStorage antes de hidratar).
  */
 
 interface NavItem {
@@ -43,13 +45,6 @@ function esActivo(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-// Flag de hidratación (sin setState-en-efecto): `false` en SSR y en la primera pintura
-// de hidratación, `true` en cliente ya hidratado. Evita evaluar el guard con el snapshot
-// de SSR (email = null) y redirigir por error a un usuario logueado.
-const noopSubscribe = () => () => {};
-const getTrue = () => true;
-const getFalse = () => false;
-
 function Marca() {
   return (
     <span className="flex items-center gap-2.5">
@@ -64,79 +59,32 @@ function Marca() {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { email, signOut } = useSession();
-  const { signOut: signOutGoogle } = useAuthActions();
+  const { isLoading, isAuthenticated } = useConvexAuth();
+  const { signOut } = useAuthActions();
   const usuario = useCurrentUser();
   const [confirmandoSalida, setConfirmandoSalida] = useState(false);
 
-  // Cierra AMBAS sesiones (mock local + Convex Auth/Google si la hubiera) y vuelve
-  // al login — mismo patrón que ya usan los guards B y C más abajo.
   async function cerrarSesion() {
-    signOut();
-    await signOutGoogle();
+    await signOut();
     router.replace("/login");
   }
 
-  const hidratado = useSyncExternalStore(noopSubscribe, getTrue, getFalse);
-
-  // Cuentas soloGoogle (MOI-114): el email de localStorage no basta, se exige además una
-  // identidad verificada en servidor por Convex Auth (ver convex/usuarios.ts).
-  const requiereGoogle = usuario?.soloGoogle === true;
-  const autenticado = useQuery(
-    api.usuarios.getUsuarioAutenticado,
-    requiereGoogle ? {} : "skip",
-  );
-  const autenticadoOk =
-    !requiereGoogle ||
-    (autenticado !== undefined &&
-      autenticado !== null &&
-      usuario != null &&
-      autenticado._id === usuario._id);
-
-  // Guard A — sin sesión → /login (protege TODAS las rutas de (app); MOI-80).
+  // Guard A — sin sesión → /login (protege TODAS las rutas de (app); MOI-80/MOI-115).
   useEffect(() => {
-    if (hidratado && email == null) router.replace("/login");
-  }, [hidratado, email, router]);
+    if (!isLoading && !isAuthenticated) router.replace("/login");
+  }, [isLoading, isAuthenticated, router]);
 
-  // Guard B — sesión rancia: hay email pero no existe en Convex → fallar cerrado a /login.
+  // Guard B — sesión de Convex Auth válida pero sin fila en `usuarios` (p. ej. la cuenta
+  // fue desprovisionada): fallar cerrado a /login.
   useEffect(() => {
-    if (hidratado && email != null && usuario === null) {
-      signOut();
-      void signOutGoogle();
-      router.replace("/login");
+    if (isAuthenticated && usuario === null) {
+      void signOut().then(() => router.replace("/login"));
     }
-  }, [hidratado, email, usuario, signOut, signOutGoogle, router]);
+  }, [isAuthenticated, usuario, signOut, router]);
 
-  // Guard C (MOI-114) — cuentas soloGoogle sin identidad de Convex Auth verificada (p. ej.
-  // alguien escribió el email a mano en localStorage): fallar cerrado a /login.
-  useEffect(() => {
-    if (!hidratado || email == null || !requiereGoogle) return;
-    if (autenticado === undefined) return; // aún cargando, no rechazar todavía
-    if (!autenticadoOk) {
-      signOut();
-      void signOutGoogle();
-      router.replace("/login");
-    }
-  }, [
-    hidratado,
-    email,
-    requiereGoogle,
-    autenticado,
-    autenticadoOk,
-    signOut,
-    signOutGoogle,
-    router,
-  ]);
-
-  // Redirigiendo (sin sesión / hidratando) o cargando la identidad: spinner neutro.
-  // Nunca se monta contenido protegido en estos estados.
-  if (
-    !hidratado ||
-    email == null ||
-    usuario === undefined ||
-    usuario === null ||
-    (requiereGoogle && (autenticado === undefined || !autenticadoOk))
-  ) {
+  // Redirigiendo (sin sesión) o cargando la identidad: spinner neutro. Nunca se monta
+  // contenido protegido en estos estados.
+  if (isLoading || !isAuthenticated || usuario === undefined || usuario === null) {
     return (
       <div className="flex min-h-dvh items-center justify-center">
         <span
