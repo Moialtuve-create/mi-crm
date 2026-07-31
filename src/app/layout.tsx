@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
-import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ClienteOverlayProvider } from "@/components/providers/ClienteOverlayProvider";
 import { InteraccionOverlayProvider } from "@/components/providers/InteraccionOverlayProvider";
@@ -44,17 +43,15 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ConvexClientProvider>
-          <SessionProvider>
-            <ToastProvider>
-              <ClienteOverlayProvider>
-                <InteraccionOverlayProvider>
-                  <SeguimientoOverlayProvider>
-                    <VentaOverlayProvider>{children}</VentaOverlayProvider>
-                  </SeguimientoOverlayProvider>
-                </InteraccionOverlayProvider>
-              </ClienteOverlayProvider>
-            </ToastProvider>
-          </SessionProvider>
+          <ToastProvider>
+            <ClienteOverlayProvider>
+              <InteraccionOverlayProvider>
+                <SeguimientoOverlayProvider>
+                  <VentaOverlayProvider>{children}</VentaOverlayProvider>
+                </SeguimientoOverlayProvider>
+              </InteraccionOverlayProvider>
+            </ClienteOverlayProvider>
+          </ToastProvider>
         </ConvexClientProvider>
       </body>
     </html>

@@ -1,20 +1,20 @@
 "use client";
 
-// Pantalla: Inicio de sesión (/login) — Linear MOI-80 (contraseña) + MOI-114 (Google).
+// Pantalla: Inicio de sesión (/login) — Linear MOI-80 (contraseña) + MOI-114 (Google)
+// + MOI-115 (contraseña real + recuperación).
 // Diseño: design/.../README.md → "1. Inicio de sesión" + prototipo CRM Shell.dc.html.
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { useConvex, useQuery } from "convex/react";
+import Link from "next/link";
+import { useQuery } from "convex/react";
 import { useAuthActions, useConvexAuth } from "@convex-dev/auth/react";
-import { CircleAlert, Eye, EyeOff } from "lucide-react";
+import { CircleAlert } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { useSession } from "@/components/providers/SessionProvider";
-import { createMockAuth, signInEmail } from "@/lib/auth.mock";
+import { BotonVerPassword } from "@/components/ui/BotonVerPassword";
+import { normalizaEmail, EMAIL_RE } from "@/lib/authCliente";
 import { api } from "../../../convex/_generated/api";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Marca en sessionStorage que se disparó el redirect a Google, para distinguir "acabamos
 // de volver de un intento" de una carga cualquiera de /login (MOI-114, §9 del plan).
@@ -51,9 +51,7 @@ function IconoGoogle() {
 
 export default function LoginPage() {
   const router = useRouter();
-  const convex = useConvex();
-  const { email: sesionEmail } = useSession();
-  const { signIn: signInGoogle } = useAuthActions();
+  const { signIn } = useAuthActions();
   const { isLoading: authLoading, isAuthenticated } = useConvexAuth();
   const autenticado = useQuery(api.usuarios.getUsuarioAutenticado);
 
@@ -65,19 +63,10 @@ export default function LoginPage() {
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Si ya hay sesión (contraseña o Google ya puenteado), no tiene sentido ver el login.
+  // Con sesión de Convex Auth ya resuelta y provisionada, no tiene sentido ver el login.
   useEffect(() => {
-    if (sesionEmail) router.replace("/hoy");
-  }, [sesionEmail, router]);
-
-  // Puente MOI-114: cuando Convex Auth confirma una identidad de Google verificada en
-  // servidor y provisionada en `usuarios`, se traduce a la sesión "de conveniencia" que
-  // ya usan AppShell/useSession (vibecrm_session) y se entra a /hoy.
-  useEffect(() => {
-    if (sesionEmail || !isAuthenticated || !autenticado) return;
-    signInEmail(autenticado.email);
-    router.replace("/hoy");
-  }, [sesionEmail, isAuthenticated, autenticado, router]);
+    if (isAuthenticated && autenticado) router.replace("/hoy");
+  }, [isAuthenticated, autenticado, router]);
 
   // Canal de rechazo tras el redirect completo de Google: solo se interpreta como error si
   // realmente veníamos de pulsar "Continuar con Google" (evita falsos banners en cargas
@@ -134,10 +123,23 @@ export default function LoginPage() {
     setSubmitting(true);
     setError(null);
     try {
-      // createMockAuth().signIn persiste la sesión (única autoridad). No re-persistir aquí.
-      await createMockAuth(convex).signIn(email, password);
-      router.replace("/hoy");
+      await signIn("password", {
+        flow: "signIn",
+        email: normalizaEmail(email),
+        password,
+      });
+      // MOI-115 auditoría M3: NO navegar aquí. `isAuthenticated` puede pasar a `true`
+      // (JWT ya emitido) antes de que la suscripción de `getUsuarioAutenticado` se
+      // reactualice con el token nuevo — mismo fenómeno ya documentado abajo para
+      // Google. Si se navegara ya a /hoy, el guard de `AppShell` podría ver un
+      // `usuario === null` transitorio y cerrar la sesión que se acaba de abrir. El
+      // `useEffect` de la línea ~67 ya navega en cuanto `autenticado` resuelve de
+      // verdad — dejar que sea la única puerta de entrada a /hoy, para Google y
+      // contraseña por igual. `submitting` se queda en `true` (spinner) hasta entonces.
     } catch {
+      // Nunca el error crudo del servidor (puede venir redactado o revelar detalles
+      // internos) — mensaje genérico siempre, tanto si el email no existe como si la
+      // contraseña es incorrecta.
       setError("Email o contraseña incorrectos");
       setSubmitting(false);
     }
@@ -156,7 +158,7 @@ export default function LoginPage() {
       // la app queda "no autenticada" aunque Google y createOrUpdateUser ya validaron
       // todo correctamente. /login no tiene redirect de servidor, así que el `code`
       // sobrevive para que ConvexAuthProvider lo procese.
-      await signInGoogle("google", { redirectTo: "/login" });
+      await signIn("google", { redirectTo: "/login" });
     } catch {
       window.sessionStorage.removeItem(MARCA_GOOGLE_INTENTADO);
       setError("No se pudo iniciar el acceso con Google. Inténtalo de nuevo.");
@@ -164,9 +166,9 @@ export default function LoginPage() {
     }
   }
 
-  // Con sesión activa (contraseña, o Google ya verificado a la espera del puente) se está
-  // redirigiendo: no mostrar el formulario.
-  if (sesionEmail || (isAuthenticated && autenticado !== null)) {
+  // Con sesión activa (a la espera del puente a /hoy) se está redirigiendo: no mostrar
+  // el formulario.
+  if (isAuthenticated && autenticado) {
     return (
       <main className="flex flex-1 items-center justify-center p-4">
         <span
@@ -220,21 +222,10 @@ export default function LoginPage() {
               placeholder="Tu contraseña"
               error={passwordError}
               trailing={
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((s) => !s)}
-                  aria-pressed={showPassword}
-                  aria-label={
-                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-                  }
-                  className="focus-ring flex h-9 w-9 items-center justify-center rounded-md text-subtle-fg hover:text-fg"
-                >
-                  {showPassword ? (
-                    <EyeOff size={18} strokeWidth={1.5} />
-                  ) : (
-                    <Eye size={18} strokeWidth={1.5} />
-                  )}
-                </button>
+                <BotonVerPassword
+                  visible={showPassword}
+                  onToggle={() => setShowPassword((s) => !s)}
+                />
               }
             />
 
@@ -285,14 +276,12 @@ export default function LoginPage() {
           </button>
 
           <div className="mt-4 text-center">
-            {/* Recuperación de contraseña real: post-MVP (MOI-55). */}
-            <a
-              href="#"
+            <Link
+              href="/login/recuperar"
               className="text-[13px] text-muted-fg hover:text-fg"
-              onClick={(e) => e.preventDefault()}
             >
               ¿Olvidaste tu contraseña?
-            </a>
+            </Link>
           </div>
         </div>
       </div>
