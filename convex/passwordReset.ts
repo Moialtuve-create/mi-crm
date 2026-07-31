@@ -7,7 +7,7 @@ import { sha256 } from "@oslojs/crypto/sha2";
 import { encodeHexLowerCase, encodeBase64url } from "@oslojs/encoding";
 import { action, mutation, internalAction, internalMutation, internalQuery } from "./_generated/server";
 import type { DatabaseWriter } from "./_generated/server";
-import { internal } from "./_generated/api";
+import { api, internal } from "./_generated/api";
 
 /**
  * MOI-115 — Contraseñas reales y recuperación por código de email.
@@ -353,6 +353,28 @@ export const asegurarCuentaPassword = action({
       // y aquí. No es un error real — el resultado deseado (la cuenta existe) se cumple.
     }
     return null;
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Invitación de alta (Linear MOI-81): dispara el mismo código de 6 dígitos que
+// "olvidé mi contraseña" para que un usuario recién creado por la Dueña pueda definir
+// la suya, sin que ella tenga que explicarle nada. `crear` (convex/usuarios.ts) es una
+// mutation y no puede hacer `fetch`; agenda esta action vía `ctx.scheduler`.
+// ---------------------------------------------------------------------------
+
+export const invitarUsuario = internalAction({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    // Aprovisiona la cuenta password (secret aleatorio inutilizable) ANTES de pedir el
+    // código: flow:"reset" busca la cuenta por provider "password" y falla si no existe.
+    await ctx.runAction(api.passwordReset.asegurarCuentaPassword, { email });
+    // Mismo camino que PasoEmail.tsx desde el cliente: genera el código, aplica el
+    // throttle de emisión (paso 0 de createOrUpdateUser) y envía el email por Resend.
+    await ctx.runAction(api.auth.signIn, {
+      provider: "password",
+      params: { flow: "reset", email },
+    });
   },
 });
 

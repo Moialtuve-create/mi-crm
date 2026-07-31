@@ -7,6 +7,7 @@ import { ClienteOverlayProvider } from "@/components/providers/ClienteOverlayPro
 import { InteraccionOverlayProvider } from "@/components/providers/InteraccionOverlayProvider";
 import { SeguimientoOverlayProvider } from "@/components/providers/SeguimientoOverlayProvider";
 import { VentaOverlayProvider } from "@/components/providers/VentaOverlayProvider";
+import { EquipoOverlayProvider } from "@/components/providers/EquipoOverlayProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -47,7 +48,9 @@ export default function RootLayout({
             <ClienteOverlayProvider>
               <InteraccionOverlayProvider>
                 <SeguimientoOverlayProvider>
-                  <VentaOverlayProvider>{children}</VentaOverlayProvider>
+                  <VentaOverlayProvider>
+                    <EquipoOverlayProvider>{children}</EquipoOverlayProvider>
+                  </VentaOverlayProvider>
                 </SeguimientoOverlayProvider>
               </InteraccionOverlayProvider>
             </ClienteOverlayProvider>
