@@ -242,10 +242,16 @@ async function enviarCodigoReset(
     // entorno, que por defecto no está puesta en NINGÚN deployment: así nadie deja
     // códigos recuperables en logs de producción por accidente (auditoría, sugerencia
     // baja). Para probar en local sin Resend: `npx convex env set RESEND_DEV_LOG_CODIGO true`.
+    // MOI-115 auditoría M1 (residual, 6ª ronda): sin API key configurada, NO se ha
+    // emitido el código por ningún canal salvo cuando el opt-in de log de dev está
+    // activo — solo esa rama cuenta contra el throttle. Sin la key y sin el opt-in,
+    // esto es una incidencia de configuración (no un envío, exitoso ni fallido): 5
+    // intentos así no deben agotar la cuota horaria de un usuario legítimo, porque en
+    // cuanto se arregle la configuración seguiría bloqueado sin motivo.
     if (process.env.RESEND_DEV_LOG_CODIGO === "true") {
       console.warn(`[dev] Código de recuperación para ${email}: ${codigo}`);
+      await ctx.runMutation(internal.passwordReset.registrarEnvio, { email });
     }
-    await ctx.runMutation(internal.passwordReset.registrarEnvio, { email });
     return;
   }
 

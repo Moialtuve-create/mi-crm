@@ -25,6 +25,12 @@ export function PasoNuevaPassword({ email, codigo }: { email: string; codigo: st
   const [triedSubmit, setTriedSubmit] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // MOI-115 auditoría M3 (residual, 6ª ronda): si el usuario que abre /login/recuperar
+  // YA tenía una sesión activa (p. ej. de otra pestaña, o de antes), `isAuthenticated`
+  // y `autenticado` son verdaderos desde el primer render — ANTES de que `guardar()`
+  // se llame siquiera. El efecto de abajo no puede depender solo de esos dos: hace
+  // falta una señal propia de que ESTE intento de `reset-verification` tuvo éxito.
+  const [resetCompletado, setResetCompletado] = useState(false);
   // Ref, no useState: solo evita repetir el toast si el efecto se reevalúa por un
   // cambio de referencia de `autenticado` (nueva versión del mismo objeto) antes de
   // que `router.replace` complete la navegación. No debe disparar un re-render.
@@ -34,14 +40,16 @@ export function PasoNuevaPassword({ email, codigo }: { email: string; codigo: st
   // pasar a `true` antes de que `getUsuarioAutenticado` se reactualice con el token
   // nuevo. Navegar a /hoy directamente después de `signIn` arriesga que el guard de
   // `AppShell` vea un `usuario === null` transitorio y cierre la sesión recién creada.
-  // Solo se navega cuando `autenticado` resuelve de verdad a un objeto.
+  // Solo se navega cuando `autenticado` resuelve de verdad Y este componente ha
+  // completado su propio reset-verification (`resetCompletado`) — nunca por una
+  // sesión que ya existiera al montar la pantalla.
   useEffect(() => {
-    if (isAuthenticated && autenticado && !avisadoRef.current) {
+    if (resetCompletado && isAuthenticated && autenticado && !avisadoRef.current) {
       avisadoRef.current = true;
       showToast({ mensaje: "Contraseña actualizada" });
       router.replace("/hoy");
     }
-  }, [isAuthenticated, autenticado, showToast, router]);
+  }, [resetCompletado, isAuthenticated, autenticado, showToast, router]);
 
   const passwordCorta = password.length < 8;
   // El servidor rechaza esto de todos modos (auditoría M2) — validar aquí es solo
@@ -69,8 +77,11 @@ export function PasoNuevaPassword({ email, codigo }: { email: string; codigo: st
         code: codigo,
         newPassword: password,
       });
-      // No navegar aquí — ver el useEffect de arriba. `guardando` se queda en `true`
-      // (botón deshabilitado con spinner) hasta que la identidad resuelva de verdad.
+      // Recién AHORA es seguro dejar que el efecto navegue — este `signIn` concreto
+      // resolvió sin lanzar. No navegar aquí directamente — ver el useEffect de
+      // arriba. `guardando` se queda en `true` (botón deshabilitado con spinner)
+      // hasta que la identidad resuelva de verdad.
+      setResetCompletado(true);
     } catch {
       setError(
         "El código ha caducado o ya se usó. Vuelve a pedir uno nuevo desde el paso anterior.",
