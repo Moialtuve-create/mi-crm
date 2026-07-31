@@ -5,7 +5,7 @@ import type { EmailConfig, GenericActionCtxWithAuthConfig } from "@convex-dev/au
 import type { DataModel } from "./_generated/dataModel";
 import { sha256 } from "@oslojs/crypto/sha2";
 import { encodeHexLowerCase, encodeBase64url } from "@oslojs/encoding";
-import { action, mutation, internalMutation, internalQuery } from "./_generated/server";
+import { action, mutation, internalAction, internalMutation, internalQuery } from "./_generated/server";
 import type { DatabaseWriter } from "./_generated/server";
 import { internal } from "./_generated/api";
 
@@ -398,5 +398,78 @@ export const comprobarCodigo = mutation({
     if (filaCodigo.accountId !== cuenta._id) return "invalido";
 
     return "ok";
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Aviso de cambio de contraseña (mitigación de la decisión del owner de permitir
+// contraseña en cuentas `soloGoogle` — auditoría de seguridad de MOI-115). Disparado
+// desde `createOrUpdateUser` (convex/auth.ts) vía `ctx.scheduler`, porque ese callback
+// corre en una mutation y no puede hacer `fetch` directamente.
+// ---------------------------------------------------------------------------
+
+function plantillaAvisoCambioTexto(): string {
+  return [
+    "Contraseña actualizada — Vibe CRM",
+    "",
+    "La contraseña de tu cuenta de Vibe CRM se acaba de cambiar.",
+    "",
+    "Si has sido tú, no tienes que hacer nada.",
+    "Si NO has sido tú, alguien más puede tener acceso a tu correo: cambia también la",
+    "contraseña de tu email cuanto antes.",
+  ].join("\n");
+}
+
+function plantillaAvisoCambioHtml(): string {
+  return `<!doctype html>
+<html>
+  <body style="margin:0;padding:24px;background:#F7F8F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" style="max-width:480px;margin:0 auto;">
+      <tr>
+        <td style="background:#FFFFFF;border:1px solid #E4E7EB;border-radius:12px;padding:32px;">
+          <p style="margin:0 0 24px;font-size:14px;font-weight:600;color:#2F6F4F;">Vibe CRM</p>
+          <h1 style="margin:0 0 12px;font-size:20px;color:#1A1F1C;">Contraseña actualizada</h1>
+          <p style="margin:0 0 16px;font-size:15px;line-height:1.5;color:#4A5350;">
+            La contraseña de tu cuenta de Vibe CRM se acaba de cambiar.
+          </p>
+          <p style="margin:0 0 8px;font-size:13px;color:#6B7570;">Si has sido tú, no tienes que hacer nada.</p>
+          <p style="margin:0;font-size:13px;color:#6B7570;">
+            Si <strong>no</strong> has sido tú, alguien más puede tener acceso a tu correo:
+            cambia también la contraseña de tu email cuanto antes.
+          </p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+export const notificarCambioPassword = internalAction({
+  args: { email: v.string() },
+  handler: async (_ctx, { email: emailCrudo }) => {
+    const email = normalizaEmail(emailCrudo);
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) return; // sin key configurada, no hay nada que enviar (mismo criterio que el resto del módulo)
+
+    const remitente = process.env.EMAIL_REMITENTE ?? "Vibe CRM <onboarding@resend.dev>";
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: remitente,
+        to: [email],
+        subject: "Tu contraseña de Vibe CRM ha cambiado",
+        html: plantillaAvisoCambioHtml(),
+        text: plantillaAvisoCambioTexto(),
+      }),
+    });
+    if (!res.ok) {
+      // No relanzar: este aviso es "best effort", no debe poder tumbar el flujo de
+      // cambio de contraseña (que ya ha tenido éxito cuando esto se dispara).
+      console.error(`[passwordReset] Aviso de cambio no enviado, Resend ${res.status}`);
+    }
   },
 });

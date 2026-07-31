@@ -2,6 +2,7 @@ import Google from "@auth/core/providers/google";
 import { Password } from "@convex-dev/auth/providers/Password";
 import { convexAuth } from "@convex-dev/auth/server";
 import type { DatabaseWriter } from "./_generated/server";
+import { internal } from "./_generated/api";
 import {
   EMAIL_RE,
   normalizaEmail,
@@ -74,6 +75,24 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       if (args.type === "email" && args.provider.id === "password-reset") {
         await bloquearSiThrottleReset(db, args.profile.email as string);
         // No hace `return`: si no bloqueó, cae al paso 1 con el flujo normal.
+      }
+
+      // PASO 0.5 — aviso de cambio de contraseña (mitigación de la decisión del owner de
+      // permitir contraseña en cuentas `soloGoogle`, señalada por la auditoría de
+      // seguridad de MOI-115). `type:"verification"` + provider "password" es la firma
+      // exacta de un canje de código de reset que ACABA de validarse en
+      // verifyCodeAndSignIn — justo antes de que Password.js reescriba el secret
+      // (Password.js: primero upsertUserAndAccount, luego modifyAccountCredentials).
+      // Este callback corre en una MUTATION (no puede hacer fetch), así que se agenda
+      // la action vía scheduler en vez de llamarla directamente; un fallo del envío no
+      // debe poder tumbar el cambio de contraseña, que en este punto ya es imparable.
+      if (args.type === "verification" && args.provider.id === "password") {
+        const emailAviso = args.profile.email;
+        if (typeof emailAviso === "string") {
+          await ctx.scheduler.runAfter(0, internal.passwordReset.notificarCambioPassword, {
+            email: emailAviso,
+          });
+        }
       }
 
       // PASO 1 — reutilizar vínculo ya resuelto (re-login de Google, canje del código de

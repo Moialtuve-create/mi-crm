@@ -21,9 +21,11 @@ export const list = query({
 
 /**
  * Identidad de negocio verificada en SERVIDOR (Linear MOI-114): a diferencia de
- * `getByEmail`, no recibe nada del cliente — resuelve el usuario desde el JWT que
- * Convex Auth validó tras el login con Google. No es falsificable escribiendo en
- * localStorage; la usa el guard de cuentas `soloGoogle` en AppShell.
+ * `getByEmail` (borrada en MOI-115), no recibe nada del cliente — resuelve el usuario
+ * desde el JWT que Convex Auth validó. No es falsificable escribiendo en localStorage.
+ * Es la única fuente de identidad de `useCurrentUser` y de los guards de `AppShell`.
+ * `soloGoogle` ya NO restringe nada aquí (MOI-115, decisión del owner): una cuenta
+ * puede tener Google + contraseña a la vez. Ver convex/passwordReset.ts.
  *
  * Se resuelve por `authUserId`, NO por email: el JWT de Convex Auth solo lleva los
  * claims `sub` (`"<userId>|<sessionId>"`), `iss`, `aud`, `iat` y `exp` — no incluye
