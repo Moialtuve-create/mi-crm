@@ -43,6 +43,18 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         }
         const email = normalizaEmail(params.email);
         if (!EMAIL_RE.test(email)) throw new Error("Email no válido");
+
+        // M2: `validatePasswordRequirements` (más abajo) solo recibe la contraseña, no
+        // el email — no puede comparar ambos. `profile` sí recibe el objeto `params`
+        // completo (incluido `newPassword` en flow:"reset-verification"), así que es el
+        // único punto donde se puede rechazar que la contraseña nueva sea literalmente
+        // el email (con mayúsculas/espacios distintos incluidos) — una contraseña
+        // públicamente predecible por cualquiera que conozca la cuenta.
+        if (params.flow === "reset-verification" && typeof params.newPassword === "string") {
+          if (normalizaEmail(params.newPassword) === email) {
+            throw new Error("La contraseña no puede ser tu email.");
+          }
+        }
         return { email };
       },
       reset: proveedorCodigoReset,

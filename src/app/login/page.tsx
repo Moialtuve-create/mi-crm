@@ -128,7 +128,14 @@ export default function LoginPage() {
         email: normalizaEmail(email),
         password,
       });
-      router.replace("/hoy");
+      // MOI-115 auditoría M3: NO navegar aquí. `isAuthenticated` puede pasar a `true`
+      // (JWT ya emitido) antes de que la suscripción de `getUsuarioAutenticado` se
+      // reactualice con el token nuevo — mismo fenómeno ya documentado abajo para
+      // Google. Si se navegara ya a /hoy, el guard de `AppShell` podría ver un
+      // `usuario === null` transitorio y cerrar la sesión que se acaba de abrir. El
+      // `useEffect` de la línea ~67 ya navega en cuanto `autenticado` resuelve de
+      // verdad — dejar que sea la única puerta de entrada a /hoy, para Google y
+      // contraseña por igual. `submitting` se queda en `true` (spinner) hasta entonces.
     } catch {
       // Nunca el error crudo del servidor (puede venir redactado o revelar detalles
       // internos) — mensaje genérico siempre, tanto si el email no existe como si la

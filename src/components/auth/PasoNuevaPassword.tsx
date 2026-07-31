@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthActions } from "@convex-dev/auth/react";
+import { useQuery } from "convex/react";
+import { useAuthActions, useConvexAuth } from "@convex-dev/auth/react";
 import { CircleAlert } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { BotonVerPassword } from "@/components/ui/BotonVerPassword";
 import { useToast } from "@/components/ui/Toast";
+import { normalizaEmail } from "@/lib/authCliente";
+import { api } from "../../../convex/_generated/api";
 
 export function PasoNuevaPassword({ email, codigo }: { email: string; codigo: string }) {
   const router = useRouter();
   const { signIn } = useAuthActions();
   const { showToast } = useToast();
+  const { isAuthenticated } = useConvexAuth();
+  const autenticado = useQuery(api.usuarios.getUsuarioAutenticado);
 
   const [password, setPassword] = useState("");
   const [repetir, setRepetir] = useState("");
@@ -20,15 +25,41 @@ export function PasoNuevaPassword({ email, codigo }: { email: string; codigo: st
   const [triedSubmit, setTriedSubmit] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Ref, no useState: solo evita repetir el toast si el efecto se reevalúa por un
+  // cambio de referencia de `autenticado` (nueva versión del mismo objeto) antes de
+  // que `router.replace` complete la navegación. No debe disparar un re-render.
+  const avisadoRef = useRef(false);
+
+  // MOI-115 auditoría M3: mismo fenómeno que en /login — `isAuthenticated` puede
+  // pasar a `true` antes de que `getUsuarioAutenticado` se reactualice con el token
+  // nuevo. Navegar a /hoy directamente después de `signIn` arriesga que el guard de
+  // `AppShell` vea un `usuario === null` transitorio y cierre la sesión recién creada.
+  // Solo se navega cuando `autenticado` resuelve de verdad a un objeto.
+  useEffect(() => {
+    if (isAuthenticated && autenticado && !avisadoRef.current) {
+      avisadoRef.current = true;
+      showToast({ mensaje: "Contraseña actualizada" });
+      router.replace("/hoy");
+    }
+  }, [isAuthenticated, autenticado, showToast, router]);
 
   const passwordCorta = password.length < 8;
+  // El servidor rechaza esto de todos modos (auditoría M2) — validar aquí es solo
+  // feedback inmediato, no la barrera real.
+  const esElEmail = password !== "" && normalizaEmail(password) === email;
   const noCoincide = repetir !== password;
-  const passwordError = triedSubmit && passwordCorta ? "Mínimo 8 caracteres" : undefined;
+  const passwordError = triedSubmit
+    ? passwordCorta
+      ? "Mínimo 8 caracteres"
+      : esElEmail
+        ? "La contraseña no puede ser tu email"
+        : undefined
+    : undefined;
   const repetirError = triedSubmit && noCoincide ? "Las contraseñas no coinciden" : undefined;
 
   async function guardar() {
     setTriedSubmit(true);
-    if (passwordCorta || noCoincide || guardando) return;
+    if (passwordCorta || esElEmail || noCoincide || guardando) return;
     setGuardando(true);
     setError(null);
     try {
@@ -38,8 +69,8 @@ export function PasoNuevaPassword({ email, codigo }: { email: string; codigo: st
         code: codigo,
         newPassword: password,
       });
-      showToast({ mensaje: "Contraseña actualizada" });
-      router.replace("/hoy");
+      // No navegar aquí — ver el useEffect de arriba. `guardando` se queda en `true`
+      // (botón deshabilitado con spinner) hasta que la identidad resuelva de verdad.
     } catch {
       setError(
         "El código ha caducado o ya se usó. Vuelve a pedir uno nuevo desde el paso anterior.",

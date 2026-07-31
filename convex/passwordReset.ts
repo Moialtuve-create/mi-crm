@@ -224,11 +224,13 @@ async function enviarCodigoReset(
   const email = normalizaEmail(params.identifier);
   const codigo = params.token;
 
-  // El throttle de EMISIÓN ya se decidió en createOrUpdateUser (paso 0, pre-commit).
-  // Aquí solo se CUENTA, post-commit: si aquello hubiera bloqueado, la mutation entera
-  // se revirtió antes de llegar a esta action y este código nunca se ejecuta.
-  await ctx.runMutation(internal.passwordReset.registrarEnvio, { email });
-
+  // MOI-115 auditoría M1: el throttle de emisión solo debe contar envíos que REALMENTE
+  // salieron. Contar antes de intentar el fetch castigaba al usuario legítimo por un
+  // incidente transitorio del proveedor (Resend caído, dominio momentáneamente
+  // inválido, etc.): 5 fallos de Resend bastaban para bloquear la recuperación una
+  // hora entera sin que hubiera salido un solo email. Por eso `registrarEnvio` se
+  // invoca al FINAL de cada rama, solo tras confirmar éxito (res.ok, o el camino de
+  // desarrollo sin API key, que si "envía" con éxito por consola).
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     // El código solo se escribe en el log fuera de producción: en prod, un log con
@@ -243,6 +245,7 @@ async function enviarCodigoReset(
     if (process.env.RESEND_DEV_LOG_CODIGO === "true") {
       console.warn(`[dev] Código de recuperación para ${email}: ${codigo}`);
     }
+    await ctx.runMutation(internal.passwordReset.registrarEnvio, { email });
     return;
   }
 
@@ -266,9 +269,12 @@ async function enviarCodigoReset(
     const cuerpo = await res.text();
     console.error(`[passwordReset] Resend respondió ${res.status}: ${cuerpo}`);
     // Fallar ruidosamente: un dominio sin verificar debe verse en los logs de Convex,
-    // no parecer un envío exitoso.
+    // no parecer un envío exitoso. NO se cuenta contra el throttle horario: un fallo
+    // del proveedor no debe consumir la cuota del usuario legítimo (auditoría M1).
     throw new Error("No se pudo enviar el email de recuperación.");
   }
+
+  await ctx.runMutation(internal.passwordReset.registrarEnvio, { email });
 }
 
 export const proveedorCodigoReset = Email({
